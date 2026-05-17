@@ -72,7 +72,7 @@ import { authApi } from '@/api/auth'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(window.innerWidth >= 768)
 const isLoggedIn = computed(() => !!userStore.token)
 
 const handleLogout = async () => {
