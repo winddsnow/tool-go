@@ -102,8 +102,8 @@ func (s *sRole) List(ctx context.Context, req *v1.RoleListReq) (*v1.RoleListRes,
 	if req.Name != "" {
 		m = m.WhereLike(dao.Role.Columns.Name, "%"+req.Name+"%")
 	}
-	if req.Status > 0 {
-		m = m.Where(dao.Role.Columns.Status, req.Status)
+	if req.Status != nil {
+		m = m.Where(dao.Role.Columns.Status, *req.Status)
 	}
 
 	var total int
