@@ -55,7 +55,7 @@ type RoleListReq struct {
 	Page     int    `json:"page" d:"1" dc:"页码"`
 	PageSize int    `json:"page_size" d:"10" dc:"每页数量"`
 	Name     string `json:"name" dc:"按名称筛选"`
-	Status   uint   `json:"status" dc:"按状态筛选"`
+	Status   *int   `json:"status" dc:"按状态筛选"`
 }
 
 type RoleListRes struct {
