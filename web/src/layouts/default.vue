@@ -58,6 +58,9 @@
       <el-main>
         <router-view />
       </el-main>
+      <div class="layout-footer">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2025511523号</a>
+      </div>
     </el-container>
   </div>
 </template>
@@ -184,6 +187,23 @@ const handleLogout = async () => {
 
   @media (max-width: 480px) {
     padding: 12px;
+  }
+}
+
+.layout-footer {
+  text-align: center;
+  padding: 16px 20px;
+  background: #fff;
+  border-top: 1px solid #e6e6e6;
+  font-size: 13px;
+
+  a {
+    color: #909399;
+    text-decoration: none;
+
+    &:hover {
+      color: #409eff;
+    }
   }
 }
 </style>
