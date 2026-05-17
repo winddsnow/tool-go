@@ -29,14 +29,11 @@ service.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response
-      if (status === 401) {
-        localStorage.removeItem('token')
-        window.dispatchEvent(new CustomEvent('auth:logout'))
-      } else if (status === 403) {
-        window.dispatchEvent(new CustomEvent('auth:forbidden'))
-      } else {
-        ElMessage.error(data?.message || error.message || '网络错误')
+      if (status === 401 || status === 403) {
+        // 受保护页面的路由守卫会处理重定向，此处不做硬跳转
+        return Promise.reject(error)
       }
+      ElMessage.error(data?.message || error.message || '网络错误')
     } else {
       ElMessage.error(error.message || '网络错误')
     }
