@@ -4,25 +4,25 @@
       <el-col :span="6">
         <el-card>
           <template #header>用户总数</template>
-          <div class="stat-value">1,234</div>
+          <div class="stat-value">{{ stats.user_count.toLocaleString() }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card>
           <template #header>角色数量</template>
-          <div class="stat-value">12</div>
+          <div class="stat-value">{{ stats.role_count.toLocaleString() }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card>
           <template #header>API请求</template>
-          <div class="stat-value">56,789</div>
+          <div class="stat-value">{{ stats.api_request.toLocaleString() }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card>
           <template #header>在线用户</template>
-          <div class="stat-value">89</div>
+          <div class="stat-value">{{ stats.online_user.toLocaleString() }}</div>
         </el-card>
       </el-col>
     </el-row>
@@ -34,6 +34,25 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { dashboardApi, DashboardStatsRes } from '@/api/dashboard'
+
+const stats = ref<DashboardStatsRes>({
+  user_count: 0,
+  role_count: 0,
+  online_user: 0,
+  api_request: 0,
+})
+
+const fetchStats = async () => {
+  try {
+    stats.value = await dashboardApi.getStats()
+  } catch {
+    // ignore
+  }
+}
+
+onMounted(fetchStats)
 </script>
 
 <style scoped lang="scss">

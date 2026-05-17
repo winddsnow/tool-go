@@ -32,6 +32,7 @@ var (
 						auth.Bind(
 							controller.User,
 							controller.Role,
+							controller.Dashboard,
 						)
 
 						auth.Group("/user", func(user *ghttp.RouterGroup) {
