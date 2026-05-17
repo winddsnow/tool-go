@@ -22,9 +22,10 @@ var (
 				group.Middleware(middleware.CORS, ghttp.MiddlewareHandlerResponse)
 
 				group.Group("/api/v1", func(v1 *ghttp.RouterGroup) {
-					// 公共接口: 登录不需要认证
+					// 公共接口: 不需要认证
 					v1.POST("/login", controller.Auth, "Login")
 					v1.POST("/pageview/track", controller.PageView, "Track")
+					v1.POST("/tools/mock-data", controller.Tools, "MockData")
 
 					v1.Group("", func(auth *ghttp.RouterGroup) {
 						auth.Middleware(middleware.Auth)
