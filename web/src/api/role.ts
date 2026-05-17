@@ -9,7 +9,6 @@ export interface RoleCreateReq {
 }
 
 export interface RoleUpdateReq {
-  id: number
   name?: string
   code?: string
   sort?: number

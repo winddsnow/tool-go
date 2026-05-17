@@ -8,10 +8,10 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
-func Permission(requiredRole string) func(r *ghttp.Request) {
+func Permission(requiredRoles ...string) func(r *ghttp.Request) {
 	return func(r *ghttp.Request) {
 		ctx := r.GetCtx()
-		if !HasRole(ctx, requiredRole) {
+		if !HasAnyRole(ctx, requiredRoles...) {
 			r.Response.WriteStatus(http.StatusForbidden)
 			r.Response.WriteJsonExit(g.Map{
 				"code":    gcode.CodeNotAuthorized.Code(),

@@ -10,7 +10,6 @@ export interface UserCreateReq {
 }
 
 export interface UserUpdateReq {
-  id: number
   username?: string
   nickname?: string
   email?: string

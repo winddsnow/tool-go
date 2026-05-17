@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosResponse, type AxiosInstance } from 'axios'
 import { ElMessage } from 'element-plus'
 
 const service: AxiosInstance = axios.create({
@@ -14,9 +14,7 @@ service.interceptors.request.use(
     }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error),
 )
 
 service.interceptors.response.use(
@@ -43,7 +41,21 @@ service.interceptors.response.use(
       ElMessage.error(error.message || '网络错误')
     }
     return Promise.reject(error)
-  }
+  },
 )
 
-export default service
+type Request = {
+  get<T = any>(url: string, config?: any): Promise<T>
+  post<T = any>(url: string, data?: any, config?: any): Promise<T>
+  put<T = any>(url: string, data?: any, config?: any): Promise<T>
+  delete<T = any>(url: string, config?: any): Promise<T>
+}
+
+const request: Request = {
+  get: <T>(url: string, config?: any) => service.get<T>(url, config).then(res => res as unknown as T),
+  post: <T>(url: string, data?: any, config?: any) => service.post<T>(url, data, config).then(res => res as unknown as T),
+  put: <T>(url: string, data?: any, config?: any) => service.put<T>(url, data, config).then(res => res as unknown as T),
+  delete: <T>(url: string, config?: any) => service.delete<T>(url, config).then(res => res as unknown as T),
+}
+
+export default request

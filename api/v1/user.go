@@ -56,7 +56,7 @@ type UserListReq struct {
 	Page     int    `json:"page" d:"1" dc:"页码"`
 	PageSize int    `json:"page_size" d:"10" dc:"每页数量"`
 	Username string `json:"username" dc:"按用户名筛选"`
-	Status   uint   `json:"status" dc:"按状态筛选"`
+	Status   *int   `json:"status" dc:"按状态筛选"`
 	UserId   uint64 `json:"-" dc:"当前用户ID"`
 }
 

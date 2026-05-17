@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>用户管理</span>
-          <el-button v-if="userStore.hasRole('super_admin')" type="primary" @click="handleAdd">新增用户</el-button>
+          <el-button v-if="userStore.hasAnyRole(['super_admin', 'admin'])" type="primary" @click="handleAdd">新增用户</el-button>
         </div>
       </template>
 
@@ -13,7 +13,7 @@
           <el-input v-model="searchForm.username" placeholder="请输入用户名" clearable />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable>
+          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 120px">
             <el-option label="启用" :value="1" />
             <el-option label="禁用" :value="0" />
           </el-select>

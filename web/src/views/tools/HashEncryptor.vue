@@ -75,8 +75,6 @@ async function computeHash() {
 }
 
 async function computeMD5(data: Uint8Array): Promise<ArrayBuffer> {
-  const hex = (n: number) => n.toString(16).padStart(2, '0')
-
   const rotateLeft = (x: number, n: number) => (x << n) | (x >>> (32 - n))
   const F = (x: number, y: number, z: number) => (x & y) | (~x & z)
   const G = (x: number, y: number, z: number) => (x & z) | (y & ~z)

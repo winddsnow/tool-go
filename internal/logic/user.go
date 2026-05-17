@@ -150,8 +150,8 @@ func (s *sUser) List(ctx context.Context, req *v1.UserListReq) (*v1.UserListRes,
 	if req.Username != "" {
 		m = m.WhereLike(dao.User.Columns.Username, "%"+req.Username+"%")
 	}
-	if req.Status > 0 {
-		m = m.Where(dao.User.Columns.Status, req.Status)
+	if req.Status != nil {
+		m = m.Where(dao.User.Columns.Status, *req.Status)
 	}
 
 	var total int

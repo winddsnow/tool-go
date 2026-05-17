@@ -15,14 +15,14 @@
       </el-col>
       <el-col :span="6">
         <el-card>
-          <template #header>API请求</template>
-          <div class="stat-value">{{ stats.api_request.toLocaleString() }}</div>
+          <template #header>总访问量</template>
+          <div class="stat-value">{{ stats.total_visits.toLocaleString() }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card>
-          <template #header>在线用户</template>
-          <div class="stat-value">{{ stats.online_user.toLocaleString() }}</div>
+          <template #header>API请求</template>
+          <div class="stat-value">{{ stats.api_request.toLocaleString() }}</div>
         </el-card>
       </el-col>
     </el-row>
@@ -42,6 +42,8 @@ const stats = ref<DashboardStatsRes>({
   role_count: 0,
   online_user: 0,
   api_request: 0,
+  total_visits: 0,
+  user_visits: [],
 })
 
 const fetchStats = async () => {

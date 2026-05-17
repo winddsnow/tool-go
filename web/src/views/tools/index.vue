@@ -1,5 +1,34 @@
 <template>
   <div class="tools-page">
+    <div class="stats-bar" v-if="stats">
+      <el-row :gutter="16">
+        <el-col :span="6">
+          <div class="stat-item">
+            <span class="stat-label">总访问量</span>
+            <span class="stat-value">{{ stats.total_visits }}</span>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="stat-item">
+            <span class="stat-label">用户总数</span>
+            <span class="stat-value">{{ stats.user_count }}</span>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="stat-item">
+            <span class="stat-label">角色数量</span>
+            <span class="stat-value">{{ stats.role_count }}</span>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="stat-item">
+            <span class="stat-label">活跃访问</span>
+            <span class="stat-value">{{ topUserLabel }}</span>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
+
     <div class="page-header">
       <h1>开发工具箱</h1>
       <p>高效、便捷的开发工具集合</p>
@@ -57,6 +86,19 @@
           <el-icon><ArrowRight /></el-icon>
         </div>
       </div>
+
+      <div class="tool-card" @click="openTool('password')">
+        <div class="tool-icon">
+          <el-icon :size="40"><Key /></el-icon>
+        </div>
+        <div class="tool-info">
+          <h3>密码生成器</h3>
+          <p>随机密码生成，支持自定义规则</p>
+        </div>
+        <div class="tool-arrow">
+          <el-icon><ArrowRight /></el-icon>
+        </div>
+      </div>
     </div>
 
     <el-dialog v-model="toolVisible" :title="currentTool?.title" width="800px" destroy-on-close>
@@ -66,12 +108,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef } from 'vue'
-import { Clock, Edit, Lock, Document, ArrowRight } from '@element-plus/icons-vue'
+import { ref, computed, onMounted } from 'vue'
+import { Clock, Edit, Lock, Document, Key, ArrowRight } from '@element-plus/icons-vue'
+import { dashboardApi, DashboardStatsRes } from '@/api/dashboard'
 import TimestampConverter from './TimestampConverter.vue'
 import JsonFormatter from './JsonFormatter.vue'
 import HashEncryptor from './HashEncryptor.vue'
 import Base64Converter from './Base64Converter.vue'
+import PasswordGenerator from './PasswordGenerator.vue'
 
 interface Tool {
   id: string
@@ -80,41 +124,81 @@ interface Tool {
 }
 
 const tools: Record<string, Tool> = {
-  timestamp: {
-    id: 'timestamp',
-    title: '时间戳转换工具',
-    component: TimestampConverter,
-  },
-  json: {
-    id: 'json',
-    title: 'JSON 格式化工具',
-    component: JsonFormatter,
-  },
-  hash: {
-    id: 'hash',
-    title: '哈希加密工具',
-    component: HashEncryptor,
-  },
-  base64: {
-    id: 'base64',
-    title: 'Base64 编解码工具',
-    component: Base64Converter,
-  },
+  timestamp: { id: 'timestamp', title: '时间戳转换工具', component: TimestampConverter },
+  json: { id: 'json', title: 'JSON 格式化工具', component: JsonFormatter },
+  hash: { id: 'hash', title: '哈希加密工具', component: HashEncryptor },
+  base64: { id: 'base64', title: 'Base64 编解码工具', component: Base64Converter },
+  password: { id: 'password', title: '密码生成器', component: PasswordGenerator },
 }
 
 const toolVisible = ref(false)
 const currentTool = ref<Tool | null>(null)
+const stats = ref<DashboardStatsRes | null>(null)
+
+const topUserLabel = computed(() => {
+  if (!stats.value?.user_visits?.length) return '暂无'
+  const top = stats.value.user_visits[0]
+  return `${top.username} (${top.count})`
+})
 
 const openTool = (id: string) => {
   currentTool.value = tools[id] || null
   toolVisible.value = true
 }
+
+async function fetchStats() {
+  try {
+    stats.value = await dashboardApi.getStats()
+  } catch {
+    // ignore
+  }
+}
+
+async function trackVisit() {
+  try {
+    await dashboardApi.trackPageView('/tools')
+  } catch {
+    // ignore
+  }
+}
+
+onMounted(() => {
+  trackVisit()
+  fetchStats()
+})
 </script>
 
 <style scoped lang="scss">
 .tools-page {
   max-width: 1200px;
   margin: 0 auto;
+
+  .stats-bar {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+
+      .stat-label {
+        font-size: 13px;
+        color: #909399;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #409eff;
+      }
+    }
+  }
 
   .page-header {
     text-align: center;
@@ -170,17 +254,6 @@ const openTool = (id: string) => {
       }
     }
 
-    &.disabled {
-      cursor: not-allowed;
-      opacity: 0.7;
-
-      &:hover {
-        transform: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        border-color: #f0f0f0;
-      }
-    }
-
     .tool-icon {
       width: 64px;
       height: 64px;
@@ -216,17 +289,6 @@ const openTool = (id: string) => {
       transform: translateX(-10px);
       transition: all 0.3s ease;
       color: #409eff;
-    }
-
-    .tool-badge {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: #f56c6c;
-      color: #fff;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 10px;
     }
   }
 }

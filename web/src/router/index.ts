@@ -54,7 +54,7 @@ const router = createRouter({
 
 const whiteList = ['/login', '/403']
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   document.title = `${to.meta.title || ''} - 管理系统`
   
   const userStore = useUserStore()

@@ -76,3 +76,24 @@ INSERT INTO "role" ("name", "code", "sort", "status", "desc") VALUES
 
 -- 分配管理员角色
 INSERT INTO "user_role" ("user_id", "role_id") VALUES (1, 1);
+
+-- Page view tracking table
+CREATE TABLE IF NOT EXISTS "page_view" (
+    "id" BIGSERIAL PRIMARY KEY,
+    "page_path" VARCHAR(255) NOT NULL DEFAULT '',
+    "user_id" BIGINT DEFAULT NULL,
+    "username" VARCHAR(64) DEFAULT '',
+    "ip_address" VARCHAR(64) DEFAULT '',
+    "user_agent" VARCHAR(512) DEFAULT '',
+    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX "idx_page_view_user_id" ON "page_view" ("user_id");
+CREATE INDEX "idx_page_view_created_at" ON "page_view" ("created_at");
+
+COMMENT ON TABLE "page_view" IS '页面访问埋点表';
+COMMENT ON COLUMN "page_view"."page_path" IS '访问页面路径';
+COMMENT ON COLUMN "page_view"."user_id" IS '用户ID (未登录为空)';
+COMMENT ON COLUMN "page_view"."username" IS '用户名';
+COMMENT ON COLUMN "page_view"."ip_address" IS 'IP地址';
+COMMENT ON COLUMN "page_view"."user_agent" IS 'User-Agent';
