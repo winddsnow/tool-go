@@ -8,6 +8,7 @@ import (
 
 	v1 "tool-go/api/v1"
 	"tool-go/internal/dao"
+	"tool-go/internal/library/jwt"
 	"tool-go/internal/middleware"
 )
 
@@ -23,6 +24,28 @@ func (c *cPageView) Track(ctx context.Context, req *v1.PageViewTrackReq) (*v1.Pa
 
 	userId := middleware.GetUserId(ctx)
 	username := middleware.GetUsername(ctx)
+
+	// 未登录用户记作游客
+	if userId == 0 {
+		username = "游客"
+		// 尝试从 Authorization 头解析用户信息（前端可能已登录但当前请求未走 Auth 中间件）
+		authHeader := r.Header.Get("Authorization")
+		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+			jwtCfg := g.Cfg().MustGet(ctx, "jwt").MapStrVar()
+			secret := jwtCfg["secret"].String()
+			if secret == "" {
+				secret = "tool-go-jwt-secret-key-change-in-production"
+			}
+			j := jwt.New(secret, 0, "")
+			claims, err := j.ParseToken(tokenStr)
+			if err == nil && claims.UserId > 0 {
+				userId = claims.UserId
+				username = claims.Username
+			}
+		}
+	}
+
 	ip := r.GetClientIp()
 	ua := r.Header.Get("User-Agent")
 	if len(ua) > 512 {

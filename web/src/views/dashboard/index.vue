@@ -27,8 +27,8 @@
       </el-col>
     </el-row>
     <el-card style="margin-top: 20px">
-      <template #header>欢迎使用管理系统</template>
-      <p>这是一个基于 GoFrame + Vue3 构建的企业级后台管理系统。</p>
+      <template #header>欢迎使用瓦特的工具站</template>
+      <p>集合开发工具与后台管理为一体的工具箱。</p>
     </el-card>
   </div>
 </template>

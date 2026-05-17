@@ -93,10 +93,29 @@ function copyPassword(pw: string) {
 <style scoped>
 .password-generator {
   padding: 20px;
+
+  @media (max-width: 480px) {
+    padding: 12px 0;
+  }
 }
 
 .options {
   margin-bottom: 16px;
+
+  @media (max-width: 480px) {
+    :deep(.el-form-item) {
+      display: block;
+      margin-right: 0;
+      margin-bottom: 8px;
+    }
+    :deep(.el-form-item__label) {
+      display: inline-block;
+      width: 80px;
+    }
+    :deep(.el-form-item__content) {
+      display: inline-block;
+    }
+  }
 }
 
 .password-list {

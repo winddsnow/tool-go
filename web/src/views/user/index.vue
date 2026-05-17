@@ -8,7 +8,7 @@
         </div>
       </template>
 
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form :inline="true" :model="searchForm" class="search-form" @submit.prevent="handleSearch">
         <el-form-item label="用户名">
           <el-input v-model="searchForm.username" placeholder="请输入用户名" clearable />
         </el-form-item>
@@ -24,6 +24,7 @@
         </el-form-item>
       </el-form>
 
+      <div class="table-wrapper">
       <el-table :data="tableData" v-loading="loading" border stripe>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="username" label="用户名" />
@@ -46,6 +47,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <el-pagination
         v-model:current-page="pagination.page"
@@ -59,8 +61,8 @@
       />
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
-      <el-form :model="form" label-width="100px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" class="responsive-dialog">
+      <el-form :model="form" label-width="100px" class="user-form">
         <el-form-item label="用户名" v-if="!form.id">
           <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
@@ -86,7 +88,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="roleDialogVisible" title="分配权限" width="500px">
+    <el-dialog v-model="roleDialogVisible" title="分配权限" width="500px" class="responsive-dialog">
       <el-form label-width="100px">
         <el-form-item label="角色">
           <el-select v-model="selectedRoleIds" multiple placeholder="请选择角色" style="width: 100%">
@@ -258,9 +260,51 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .search-form {
   margin-bottom: 20px;
+
+  @media (max-width: 480px) {
+    :deep(.el-form-item) {
+      display: block;
+      margin-right: 0;
+      margin-bottom: 8px;
+    }
+    :deep(.el-form-item__content) {
+      display: block;
+    }
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+:deep(.responsive-dialog) {
+  @media (max-width: 520px) {
+    width: 95% !important;
+  }
+
+  .user-form {
+    @media (max-width: 520px) {
+      :deep(.el-form-item) {
+        display: block;
+        margin-bottom: 12px;
+      }
+      :deep(.el-form-item__label) {
+        float: none;
+        display: block;
+        text-align: left;
+        padding: 0 0 4px;
+      }
+      :deep(.el-form-item__content) {
+        margin-left: 0 !important;
+      }
+    }
+  }
 }
 </style>

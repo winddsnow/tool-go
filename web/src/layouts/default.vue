@@ -1,13 +1,16 @@
 <template>
   <div class="layout-container">
-    <el-aside width="220px">
-      <div class="logo">管理系统</div>
+    <div class="sidebar-overlay" v-if="sidebarOpen" @click="sidebarOpen = false" />
+
+    <el-aside :width="sidebarOpen ? '220px' : '0'" class="sidebar">
+      <div class="logo">瓦特的工具站</div>
       <el-menu
         :default-active="route.path"
         router
         background-color="#304156"
         text-color="#bfcbd9"
         active-text-color="#409eff"
+        @select="sidebarOpen = false"
       >
         <el-menu-item index="/tools">
           <el-icon><Tool /></el-icon>
@@ -23,21 +26,33 @@
         </el-menu-item>
       </el-menu>
     </el-aside>
+
     <el-container>
       <el-header>
         <div class="header-left">
+          <el-button class="menu-btn" text @click="sidebarOpen = !sidebarOpen">
+            <el-icon :size="22"><Expand /></el-icon>
+          </el-button>
           <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item v-if="route.meta.title">{{ route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div class="header-right">
-          <el-button v-if="userStore.hasAnyRole(['super_admin', 'admin'])" type="primary" link @click="router.push('/user')">
-            <el-icon><Setting /></el-icon>
-            管理后台
-          </el-button>
-          <span class="username">{{ userStore.nickname || userStore.username || '用户' }}</span>
-          <el-button type="danger" link @click="handleLogout">退出登录</el-button>
+          <template v-if="isLoggedIn">
+            <el-button v-if="userStore.hasAnyRole(['super_admin', 'admin'])" type="primary" link @click="router.push('/user')">
+              <el-icon><Setting /></el-icon>
+              <span class="nav-text">管理后台</span>
+            </el-button>
+            <span class="username">{{ userStore.nickname || userStore.username }}</span>
+            <el-button type="danger" link @click="handleLogout">退出</el-button>
+          </template>
+          <template v-else>
+            <el-button type="primary" link @click="router.push('/login')">
+              <el-icon><User /></el-icon>
+              登录
+            </el-button>
+          </template>
         </div>
       </el-header>
       <el-main>
@@ -48,13 +63,17 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Expand } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/modules/user'
 import { authApi } from '@/api/auth'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const sidebarOpen = ref(false)
+const isLoggedIn = computed(() => !!userStore.token)
 
 const handleLogout = async () => {
   try {
@@ -72,9 +91,33 @@ const handleLogout = async () => {
   display: flex;
 }
 
-.el-aside {
+.sidebar-overlay {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 99;
+  }
+}
+
+.sidebar {
   background-color: #304156;
   color: #fff;
+  overflow: hidden;
+  transition: width 0.25s ease;
+  position: relative;
+  z-index: 100;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+  }
 
   .logo {
     height: 60px;
@@ -84,6 +127,8 @@ const handleLogout = async () => {
     font-weight: bold;
     color: #fff;
     border-bottom: 1px solid #1f2d3d;
+    white-space: nowrap;
+    overflow: hidden;
   }
 }
 
@@ -93,29 +138,52 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
   position: relative;
   z-index: 10;
 
   .header-left {
     display: flex;
     align-items: center;
+    gap: 8px;
+  }
+
+  .menu-btn {
+    display: none;
+
+    @media (max-width: 768px) {
+      display: inline-flex;
+    }
   }
 
   .header-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
 
     .username {
       font-size: 14px;
       color: #606266;
+
+      @media (max-width: 480px) {
+        display: none;
+      }
+    }
+
+    .nav-text {
+      @media (max-width: 480px) {
+        display: none;
+      }
     }
   }
 }
 
 .el-main {
   background-color: #f0f2f5;
-  padding: 20px;
+  padding: 16px;
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
 }
 </style>
