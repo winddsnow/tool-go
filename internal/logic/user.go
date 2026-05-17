@@ -26,8 +26,7 @@ func NewUser() service.IUser {
 type sUser struct{}
 
 func (s *sUser) Create(ctx context.Context, req *v1.UserCreateReq) (*v1.UserCreateRes, error) {
-	var count int
-	err := dao.User.Ctx(ctx).Where(dao.User.Columns.Username, req.Username).Count(&count)
+	count, err := dao.User.Ctx(ctx).Where(dao.User.Columns.Username, req.Username).Count()
 	if err != nil {
 		return nil, err
 	}
@@ -112,8 +111,9 @@ func (s *sUser) GetOne(ctx context.Context, req *v1.UserGetOneReq) (*v1.UserGetO
 func (s *sUser) GetRoles(ctx context.Context, req *v1.UserGetRolesReq) (*v1.UserGetRolesRes, error) {
 	var roleIds []uint64
 	err := dao.UserRole.Ctx(ctx).
+		Fields(dao.UserRole.Columns.RoleId).
 		Where(dao.UserRole.Columns.UserId, req.Id).
-		Array(&roleIds, dao.UserRole.Columns.RoleId)
+		Scan(&roleIds)
 	if err != nil {
 		return nil, err
 	}

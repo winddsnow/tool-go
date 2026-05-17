@@ -25,8 +25,7 @@ func NewRole() service.IRole {
 type sRole struct{}
 
 func (s *sRole) Create(ctx context.Context, req *v1.RoleCreateReq) (*v1.RoleCreateRes, error) {
-	var count int
-	err := dao.Role.Ctx(ctx).Where(dao.Role.Columns.Code, req.Code).Count(&count)
+	count, err := dao.Role.Ctx(ctx).Where(dao.Role.Columns.Code, req.Code).Count()
 	if err != nil {
 		return nil, err
 	}
