@@ -13,11 +13,11 @@
           <el-icon><Tool /></el-icon>
           <span>工具箱</span>
         </el-menu-item>
-        <el-menu-item v-if="userStore.hasRole('super_admin')" index="/user">
+        <el-menu-item v-if="userStore.hasAnyRole(['super_admin', 'admin'])" index="/user">
           <el-icon><User /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
-        <el-menu-item v-if="userStore.hasRole('super_admin')" index="/role">
+        <el-menu-item v-if="userStore.hasAnyRole(['super_admin', 'admin'])" index="/role">
           <el-icon><Avatar /></el-icon>
           <span>角色管理</span>
         </el-menu-item>
@@ -32,7 +32,7 @@
           </el-breadcrumb>
         </div>
         <div class="header-right">
-          <el-button v-if="userStore.hasRole('super_admin')" type="primary" link @click="router.push('/user')">
+          <el-button v-if="userStore.hasAnyRole(['super_admin', 'admin'])" type="primary" link @click="router.push('/user')">
             <el-icon><Setting /></el-icon>
             管理后台
           </el-button>
