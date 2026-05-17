@@ -10,7 +10,7 @@
         background-color="#304156"
         text-color="#bfcbd9"
         active-text-color="#409eff"
-        @select="sidebarOpen = false"
+        @select="onMenuSelect"
       >
         <el-menu-item index="/tools">
           <el-icon><Tool /></el-icon>
@@ -58,6 +58,9 @@
       <el-main>
         <router-view />
       </el-main>
+      <div class="layout-footer">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2025511523号</a>
+      </div>
     </el-container>
   </div>
 </template>
@@ -72,8 +75,14 @@ import { authApi } from '@/api/auth'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(window.innerWidth >= 768)
 const isLoggedIn = computed(() => !!userStore.token)
+
+const onMenuSelect = () => {
+  if (window.innerWidth < 768) {
+    sidebarOpen.value = false
+  }
+}
 
 const handleLogout = async () => {
   try {
@@ -184,6 +193,23 @@ const handleLogout = async () => {
 
   @media (max-width: 480px) {
     padding: 12px;
+  }
+}
+
+.layout-footer {
+  text-align: center;
+  padding: 16px 20px;
+  background: #fff;
+  border-top: 1px solid #e6e6e6;
+  font-size: 13px;
+
+  a {
+    color: #909399;
+    text-decoration: none;
+
+    &:hover {
+      color: #409eff;
+    }
   }
 }
 </style>

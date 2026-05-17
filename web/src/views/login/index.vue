@@ -56,7 +56,9 @@
         </el-form-item>
       </el-form>
       <div class="login-footer">
+        <el-button type="primary" link size="small" @click="router.push('/')">返回工具首页</el-button>
         <span>© 2026 瓦特的工具站. All rights reserved.</span>
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" class="icp-link">粤ICP备2025511523号</a>
       </div>
     </div>
   </div>
@@ -254,10 +256,22 @@ const handleLogin = async () => {
 }
 
 .login-footer {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   margin-top: 24px;
   font-size: 12px;
   color: #8c8c8c;
+
+  .icp-link {
+    color: #8c8c8c;
+    text-decoration: none;
+
+    &:hover {
+      color: #667eea;
+    }
+  }
 }
 
 :deep(.el-input__wrapper) {

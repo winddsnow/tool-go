@@ -110,6 +110,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Clock, Edit, Lock, Document, Key, ArrowRight } from '@element-plus/icons-vue'
+import { useUserStore } from '@/store/modules/user'
 import { dashboardApi, DashboardStatsRes } from '@/api/dashboard'
 import TimestampConverter from './TimestampConverter.vue'
 import JsonFormatter from './JsonFormatter.vue'
@@ -136,6 +137,7 @@ const currentTool = ref<Tool | null>(null)
 const stats = ref<DashboardStatsRes | null>(null)
 const windowWidth = ref(window.innerWidth)
 const isMobile = computed(() => windowWidth.value < 768)
+const userStore = useUserStore()
 
 function onResize() { windowWidth.value = window.innerWidth }
 onMounted(() => window.addEventListener('resize', onResize))
@@ -153,6 +155,7 @@ const openTool = (id: string) => {
 }
 
 async function fetchStats() {
+  if (!userStore.token) return
   try {
     stats.value = await dashboardApi.getStats()
   } catch {
