@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Expand } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/modules/user'
@@ -83,6 +83,23 @@ const handleLogout = async () => {
     router.push('/login')
   }
 }
+
+function onAuthLogout() {
+  userStore.logout()
+}
+
+function onAuthForbidden() {
+  router.push('/403')
+}
+
+onMounted(() => {
+  window.addEventListener('auth:logout', onAuthLogout)
+  window.addEventListener('auth:forbidden', onAuthForbidden)
+})
+onUnmounted(() => {
+  window.removeEventListener('auth:logout', onAuthLogout)
+  window.removeEventListener('auth:forbidden', onAuthForbidden)
+})
 </script>
 
 <style scoped lang="scss">

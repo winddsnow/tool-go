@@ -31,9 +31,9 @@ service.interceptors.response.use(
       const { status, data } = error.response
       if (status === 401) {
         localStorage.removeItem('token')
-        window.location.href = '/login'
+        window.dispatchEvent(new CustomEvent('auth:logout'))
       } else if (status === 403) {
-        window.location.href = '/403'
+        window.dispatchEvent(new CustomEvent('auth:forbidden'))
       } else {
         ElMessage.error(data?.message || error.message || '网络错误')
       }
