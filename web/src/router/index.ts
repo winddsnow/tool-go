@@ -18,14 +18,14 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('@/layouts/default.vue'),
-    redirect: '/dashboard',
+    redirect: '/tools',
     meta: { requiresAuth: true },
     children: [
       {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '工作台', icon: 'Odometer' },
+        path: 'tools',
+        name: 'Tools',
+        component: () => import('@/views/tools/index.vue'),
+        meta: { title: '工具箱', icon: 'Tool' },
       },
       {
         path: 'user',

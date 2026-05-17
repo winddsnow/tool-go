@@ -9,9 +9,9 @@
         text-color="#bfcbd9"
         active-text-color="#409eff"
       >
-        <el-menu-item index="/dashboard">
-          <el-icon><Odometer /></el-icon>
-          <span>工作台</span>
+        <el-menu-item index="/tools">
+          <el-icon><Tool /></el-icon>
+          <span>工具箱</span>
         </el-menu-item>
         <el-menu-item v-if="userStore.hasRole('super_admin')" index="/user">
           <el-icon><User /></el-icon>
@@ -25,8 +25,18 @@
     </el-aside>
     <el-container>
       <el-header>
+        <div class="header-left">
+          <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="route.meta.title">{{ route.meta.title }}</el-breadcrumb-item>
+          </el-breadcrumb>
+        </div>
         <div class="header-right">
-          <span>{{ userStore.nickname || userStore.username || '管理员' }}</span>
+          <el-button v-if="userStore.hasRole('super_admin')" type="primary" link @click="router.push('/user')">
+            <el-icon><Setting /></el-icon>
+            管理后台
+          </el-button>
+          <span class="username">{{ userStore.nickname || userStore.username || '用户' }}</span>
           <el-button type="danger" link @click="handleLogout">退出登录</el-button>
         </div>
       </el-header>
@@ -82,13 +92,25 @@ const handleLogout = async () => {
   border-bottom: 1px solid #e6e6e6;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 0 20px;
+  position: relative;
+  z-index: 10;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+  }
 
   .header-right {
     display: flex;
     align-items: center;
     gap: 16px;
+
+    .username {
+      font-size: 14px;
+      color: #606266;
+    }
   }
 }
 

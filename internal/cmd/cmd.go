@@ -22,12 +22,15 @@ var (
 				group.Middleware(middleware.CORS, ghttp.MiddlewareHandlerResponse)
 
 				group.Group("/api/v1", func(v1 *ghttp.RouterGroup) {
-					v1.Bind(
-						controller.Auth,
-					)
+					// 公共接口: 登录不需要认证
+					v1.POST("/login", controller.Auth, "Login")
 
 					v1.Group("", func(auth *ghttp.RouterGroup) {
 						auth.Middleware(middleware.Auth)
+
+						// 需要认证的 Auth 接口
+						auth.GET("/user/info", controller.Auth, "GetUserInfo")
+						auth.POST("/logout", controller.Auth, "Logout")
 
 						auth.Bind(
 							controller.User,
@@ -35,11 +38,15 @@ var (
 							controller.Dashboard,
 						)
 
-					auth.Group("/user", func(user *ghttp.RouterGroup) {
-						user.POST("", middleware.Permission("super_admin"), controller.User.Create)
-						user.GET("/{id}/roles", controller.User.GetRoles)
-						user.PUT("/{id}/roles", controller.User.AssignRoles)
-					})
+						auth.Group("/user", func(user *ghttp.RouterGroup) {
+							user.Middleware(middleware.Permission("super_admin"))
+							user.POST("", controller.User, "Create")
+							user.PUT("/{id}/roles", controller.User, "AssignRoles")
+						})
+
+						auth.Group("/role", func(role *ghttp.RouterGroup) {
+							role.Middleware(middleware.Permission("super_admin"))
+						})
 					})
 				})
 			})
