@@ -1,0 +1,11 @@
+server:
+  address: ":8000"
+
+database:
+  default:
+    link: "pgsql:{{ env DB_USER }}:{{ env DB_PASSWORD }}@tcp({{ env DB_HOST }}:{{ env DB_PORT }})/{{ env DB_NAME }}?sslmode=disable"
+    debug: false
+
+logger:
+  level: "warning"
+  stdout: false
