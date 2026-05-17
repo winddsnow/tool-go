@@ -1,26 +1,26 @@
 <template>
   <div class="tools-page">
     <div class="stats-bar" v-if="stats">
-      <el-row :gutter="16">
-        <el-col :span="6">
+      <el-row :gutter="[16, 16]">
+        <el-col :xs="12" :sm="6">
           <div class="stat-item">
             <span class="stat-label">总访问量</span>
             <span class="stat-value">{{ stats.total_visits }}</span>
           </div>
         </el-col>
-        <el-col :span="6">
+        <el-col :xs="12" :sm="6">
           <div class="stat-item">
             <span class="stat-label">用户总数</span>
             <span class="stat-value">{{ stats.user_count }}</span>
           </div>
         </el-col>
-        <el-col :span="6">
+        <el-col :xs="12" :sm="6">
           <div class="stat-item">
             <span class="stat-label">角色数量</span>
             <span class="stat-value">{{ stats.role_count }}</span>
           </div>
         </el-col>
-        <el-col :span="6">
+        <el-col :xs="12" :sm="6">
           <div class="stat-item">
             <span class="stat-label">活跃访问</span>
             <span class="stat-value">{{ topUserLabel }}</span>
@@ -101,14 +101,14 @@
       </div>
     </div>
 
-    <el-dialog v-model="toolVisible" :title="currentTool?.title" width="800px" destroy-on-close>
+    <el-dialog v-model="toolVisible" :title="currentTool?.title" :width="isMobile ? '95%' : '800px'" destroy-on-close>
       <component :is="currentTool?.component" v-if="toolVisible" />
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Clock, Edit, Lock, Document, Key, ArrowRight } from '@element-plus/icons-vue'
 import { dashboardApi, DashboardStatsRes } from '@/api/dashboard'
 import TimestampConverter from './TimestampConverter.vue'
@@ -134,6 +134,12 @@ const tools: Record<string, Tool> = {
 const toolVisible = ref(false)
 const currentTool = ref<Tool | null>(null)
 const stats = ref<DashboardStatsRes | null>(null)
+const windowWidth = ref(window.innerWidth)
+const isMobile = computed(() => windowWidth.value < 768)
+
+function onResize() { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
 
 const topUserLabel = computed(() => {
   if (!stats.value?.user_visits?.length) return '暂无'
@@ -196,19 +202,27 @@ onMounted(() => {
         font-size: 24px;
         font-weight: 700;
         color: #409eff;
+
+        @media (max-width: 480px) {
+          font-size: 18px;
+        }
       }
     }
   }
 
   .page-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
 
     h1 {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 700;
       color: #1a1a2e;
       margin-bottom: 8px;
+
+      @media (max-width: 480px) {
+        font-size: 22px;
+      }
     }
 
     p {
@@ -220,13 +234,18 @@ onMounted(() => {
   .tools-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px;
+    gap: 16px;
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
   }
 
   .tool-card {
     background: #fff;
     border-radius: 16px;
-    padding: 30px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
