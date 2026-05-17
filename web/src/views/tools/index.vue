@@ -99,6 +99,19 @@
           <el-icon><ArrowRight /></el-icon>
         </div>
       </div>
+
+      <div class="tool-card" @click="openTool('mockdata')">
+        <div class="tool-icon">
+          <el-icon :size="40"><List /></el-icon>
+        </div>
+        <div class="tool-info">
+          <h3>随机数据生成器</h3>
+          <p>生成姓名/手机/身份证/护照等模拟数据</p>
+        </div>
+        <div class="tool-arrow">
+          <el-icon><ArrowRight /></el-icon>
+        </div>
+      </div>
     </div>
 
     <el-dialog v-model="toolVisible" :title="currentTool?.title" :width="isMobile ? '95%' : '800px'" destroy-on-close>
@@ -109,7 +122,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Clock, Edit, Lock, Document, Key, ArrowRight } from '@element-plus/icons-vue'
+import { Clock, Edit, Lock, Document, Key, List, ArrowRight } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/modules/user'
 import { dashboardApi, DashboardStatsRes } from '@/api/dashboard'
 import TimestampConverter from './TimestampConverter.vue'
@@ -117,6 +130,7 @@ import JsonFormatter from './JsonFormatter.vue'
 import HashEncryptor from './HashEncryptor.vue'
 import Base64Converter from './Base64Converter.vue'
 import PasswordGenerator from './PasswordGenerator.vue'
+import MockDataGenerator from './MockDataGenerator.vue'
 
 interface Tool {
   id: string
@@ -130,6 +144,7 @@ const tools: Record<string, Tool> = {
   hash: { id: 'hash', title: '哈希加密工具', component: HashEncryptor },
   base64: { id: 'base64', title: 'Base64 编解码工具', component: Base64Converter },
   password: { id: 'password', title: '密码生成器', component: PasswordGenerator },
+  mockdata: { id: 'mockdata', title: '随机数据生成器', component: MockDataGenerator },
 }
 
 const toolVisible = ref(false)
