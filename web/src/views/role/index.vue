@@ -8,7 +8,7 @@
         </div>
       </template>
 
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form :inline="true" :model="searchForm" class="search-form" @submit.prevent="handleSearch">
         <el-form-item label="角色名称">
           <el-input v-model="searchForm.name" placeholder="请输入角色名称" clearable />
         </el-form-item>
@@ -24,6 +24,7 @@
         </el-form-item>
       </el-form>
 
+      <div class="table-wrapper">
       <el-table :data="tableData" v-loading="loading" border stripe>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="角色名称" />
@@ -45,6 +46,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <el-pagination
         v-model:current-page="pagination.page"
@@ -195,9 +197,27 @@ onMounted(fetchData)
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .search-form {
   margin-bottom: 20px;
+
+  @media (max-width: 480px) {
+    :deep(.el-form-item) {
+      display: block;
+      margin-right: 0;
+      margin-bottom: 8px;
+    }
+    :deep(.el-form-item__content) {
+      display: block;
+    }
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

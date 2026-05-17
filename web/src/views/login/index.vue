@@ -19,7 +19,7 @@
             </defs>
           </svg>
         </div>
-        <h1>企业级管理系统</h1>
+        <h1>瓦特的工具站</h1>
         <p class="subtitle">Enterprise Management System</p>
       </div>
       <el-form :model="form" :rules="rules" ref="formRef" @submit.prevent="handleLogin" class="login-form">
@@ -56,7 +56,7 @@
         </el-form-item>
       </el-form>
       <div class="login-footer">
-        <span>© 2026 Tool Go. All rights reserved.</span>
+        <span>© 2026 瓦特的工具站. All rights reserved.</span>
       </div>
     </div>
   </div>
@@ -184,6 +184,14 @@ const handleLogin = async () => {
   position: relative;
   z-index: 1;
   animation: slideUp 0.5s ease-out;
+
+  @media (max-width: 480px) {
+    width: calc(100% - 32px);
+    padding: 24px 20px;
+    border-radius: 12px;
+
+    h1 { font-size: 22px; }
+  }
 }
 
 @keyframes slideUp {

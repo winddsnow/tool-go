@@ -24,6 +24,7 @@ var (
 				group.Group("/api/v1", func(v1 *ghttp.RouterGroup) {
 					// 公共接口: 登录不需要认证
 					v1.POST("/login", controller.Auth, "Login")
+					v1.POST("/pageview/track", controller.PageView, "Track")
 
 					v1.Group("", func(auth *ghttp.RouterGroup) {
 						auth.Middleware(middleware.Auth)
@@ -32,7 +33,6 @@ var (
 						auth.GET("/user/info", controller.Auth, "GetUserInfo")
 						auth.POST("/logout", controller.Auth, "Logout")
 
-						auth.POST("/pageview/track", controller.PageView, "Track")
 						auth.GET("/pageview/stats", controller.PageView, "Stats")
 
 						auth.Bind(

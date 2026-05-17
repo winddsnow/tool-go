@@ -19,7 +19,6 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('@/layouts/default.vue'),
     redirect: '/tools',
-    meta: { requiresAuth: true },
     children: [
       {
         path: 'tools',
@@ -31,13 +30,13 @@ const routes: RouteRecordRaw[] = [
         path: 'user',
         name: 'User',
         component: () => import('@/views/user/index.vue'),
-        meta: { title: '用户管理', icon: 'User', roles: ['super_admin', 'admin'] },
+        meta: { title: '用户管理', icon: 'User', requiresAuth: true, roles: ['super_admin', 'admin'] },
       },
       {
         path: 'role',
         name: 'Role',
         component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色管理', icon: 'Avatar', roles: ['super_admin', 'admin'] },
+        meta: { title: '角色管理', icon: 'Avatar', requiresAuth: true, roles: ['super_admin', 'admin'] },
       },
     ],
   },
@@ -52,10 +51,10 @@ const router = createRouter({
   routes,
 })
 
-const whiteList = ['/login', '/403']
+const whiteList = ['/login', '/403', '/', '/tools']
 
 router.beforeEach(async (to, _from, next) => {
-  document.title = `${to.meta.title || ''} - 管理系统`
+  document.title = `${to.meta.title || ''} - 瓦特的工具站`
   
   const userStore = useUserStore()
   const hasToken = userStore.token
