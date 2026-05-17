@@ -65,54 +65,104 @@
 </template>
 
 <script setup lang="ts">
+// ============================================================
+// Vue 3 组合式 API —— 本文件是登录页面
+// ref ：创建一个响应式值（底层用 Proxy 实现数据劫持）
+// reactive：创建一个响应式对象（深层响应，修改任意属性都会触发更新）
+// ref 适合基础类型（字符串、数字），reactive 适合对象/数组
+// ============================================================
 import { ref, reactive } from 'vue'
+
+// useRouter：路由实例，用于页面跳转（如登录成功 -> 首页）
 import { useRouter } from 'vue-router'
+
+// Element Plus 图标：User（用户）、Lock（锁）
 import { User, Lock } from '@element-plus/icons-vue'
+
+// ElMessage：全局消息提示（成功/错误）
+// FormInstance：el-form 的实例类型（用于调用 validate 方法）
+// FormRules：表单验证规则的 TypeScript 类型
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+
+// Pinia store：用户状态管理（存储 token、用户信息、角色等）
 import { useUserStore } from '@/store/modules/user'
+
+// authApi：登录/登出的 API 请求函数封装
 import { authApi } from '@/api/auth'
 
 const router = useRouter()
 const userStore = useUserStore()
+
+// formRef：el-form 的模板引用（用于调用 validate() 表单验证方法）
+// ref<FormInstance>() 尖括号是 TypeScript 泛型，声明类型
 const formRef = ref<FormInstance>()
+
+// loading：登录中状态（v-loading 指令绑定此值，提交时显示加载动画）
 const loading = ref(false)
 
+// ----------------------------------------------------------
+// form：登录表单的数据模型（reactive 对象）
+// v-model="form.username" 将输入框与数据双向绑定
+// 用户输入时会自动更新 form.username
+// ----------------------------------------------------------
 const form = reactive({
   username: '',
   password: '',
 })
 
+// ----------------------------------------------------------
+// rules：表单验证规则
+// required: true  -> 必填项
+// message         -> 验证失败的提示文字
+// trigger: 'blur' -> 当输入框失去焦点时触发验证
+// el-form 会自动读取 rules 并执行验证
+// ----------------------------------------------------------
 const rules = reactive<FormRules>({
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 })
 
+// ----------------------------------------------------------
+// handleLogin：登录按钮点击事件
+// async/await：异步函数的语法糖，让代码看起来像同步执行
+// @submit.prevent 阻止表单默认提交行为（防止页面刷新）
+// ----------------------------------------------------------
 const handleLogin = async () => {
+  // 如果模板引用不存在，直接返回（类型安全）
   if (!formRef.value) return
-  
+
+  // 调用 el-form 的 validate 方法，执行所有字段的验证规则
+  // valid: boolean —— 全部通过为 true，否则 false
   await formRef.value.validate(async (valid) => {
-    if (!valid) return
-    
-    loading.value = true
+    if (!valid) return  // 验证不通过，停止提交
+
+    loading.value = true  // 显示加载状态，按钮禁用 + 显示"登录中..."
     try {
+      // 调用后端登录接口（POST 请求）
       const res = await authApi.login({
         username: form.username,
         password: form.password,
       })
-      
+
+      // 将 JWT token 存入 Pinia store（同时会存到 localStorage 持久化）
       userStore.setToken(res.token)
+      // 保存用户信息（ID、用户名、昵称、角色列表）
       userStore.setUserInfo({
         userId: res.user_id,
         username: res.username,
         nickname: res.nickname,
         roles: res.roles,
       })
-      
+
+      // 弹出成功提示
       ElMessage.success('登录成功')
+      // 跳转到首页
       router.push('/')
     } catch (err: any) {
+      // 登录失败，显示后端返回的错误消息
       ElMessage.error(err.message || '登录失败')
     } finally {
+      // 无论成功或失败，finally 块都会执行 —— 关闭加载状态
       loading.value = false
     }
   })

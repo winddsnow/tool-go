@@ -66,29 +66,73 @@
 </template>
 
 <script setup lang="ts">
+// ============================================================
+// Vue 3 组合式 API（Composition API）
+// <script setup> 是 Vue 3 的语法糖，让代码更简洁。
+// 顶层的 import / 变量 / 函数 自动暴露给模板使用。
+// ============================================================
+
+// ref     ：创建"响应式"数据（数字、字符串、布尔等），
+//           通过 .value 读取/修改，模板中会自动展开（不用写 .value）
+// computed：根据其他响应式数据自动计算新值，依赖变化时自动更新
 import { ref, computed } from 'vue'
+
+// useRoute()  -> 获取当前路由信息（路径、参数、meta 等）
+// useRouter() -> 路由实例，用于编程式导航（push、replace 等）
 import { useRoute, useRouter } from 'vue-router'
+
+// Element Plus 图标组件，用于侧边栏的汉堡按钮
 import { Expand } from '@element-plus/icons-vue'
+
+// Pinia 状态管理（类似 Vuex）—— 全局用户状态（token、角色、昵称等）
 import { useUserStore } from '@/store/modules/user'
+
+// 登录/登出的 API 请求封装
 import { authApi } from '@/api/auth'
 
+// ----------------------------------------------------------
+// route ：当前路由对象，可读取 route.path、route.meta.title 等
+// router：路由实例，用 router.push('/login') 跳转页面
+// userStore：Pinia store，存储用户登录状态、角色信息
+// ----------------------------------------------------------
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+// sidebarOpen：侧边栏是否展开（响应式布尔值）
+// window.innerWidth >= 768：桌面端（≥768px）默认展开侧边栏，
+// 移动端（<768px）默认收起，依赖汉堡按钮手动打开
 const sidebarOpen = ref(window.innerWidth >= 768)
+
+// isLoggedIn：计算属性，判断用户是否已登录
+// computed 会根据依赖（userStore.token）自动重新计算
+// !! 是 JavaScript 的布尔转换，将值转为 true/false
 const isLoggedIn = computed(() => !!userStore.token)
 
+// ----------------------------------------------------------
+// onMenuSelect：点击侧边栏菜单项时触发
+// @select="onMenuSelect" 是 el-menu 的选中事件
+// 移动端（<768px）选中菜单后自动收起侧边栏
+// ----------------------------------------------------------
 const onMenuSelect = () => {
   if (window.innerWidth < 768) {
     sidebarOpen.value = false
   }
 }
 
+// ----------------------------------------------------------
+// handleLogout：退出登录
+// async/await 用于处理异步操作（如 API 请求）
+// try/finally：无论 API 成功或失败，finally 块总会执行
+// ----------------------------------------------------------
 const handleLogout = async () => {
   try {
+    // 调用后端退出接口（使 JWT 失效）
     await authApi.logout()
   } finally {
+    // 清除 Pinia store 中的用户信息（token、角色等）
     userStore.logout()
+    // 跳转到登录页面
     router.push('/login')
   }
 }

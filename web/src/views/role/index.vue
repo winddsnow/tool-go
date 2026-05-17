@@ -62,14 +62,11 @@
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <el-form :model="form" label-width="100px">
-        <el-form-item label="角色名称" v-if="!form.id">
+        <el-form-item label="角色名称">
           <el-input v-model="form.name" placeholder="请输入角色名称" />
         </el-form-item>
-        <el-form-item label="角色编码" v-if="!form.id">
-          <el-input v-model="form.code" placeholder="请输入角色编码" />
-        </el-form-item>
-        <el-form-item label="角色名称" v-else>
-          <el-input v-model="form.name" placeholder="请输入角色名称" />
+        <el-form-item label="角色编码">
+          <el-input v-model="form.code" placeholder="请输入角色编码" :disabled="!!form.id" />
         </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="form.sort" :min="0" />
@@ -90,26 +87,54 @@
 </template>
 
 <script setup lang="ts">
+// ============================================================
+// Vue 3 组合式 API —— 本文件是角色管理页面
+// ref      ：响应式的基本类型或数组（用 .value 读写）
+// reactive ：响应式对象（直接修改属性即可触发更新）
+// onMounted：生命周期钩子，组件挂载后自动执行
+// ============================================================
 import { ref, reactive, onMounted } from 'vue'
+
+// ElMessage：全局消息提示
+// ElMessageBox：确认弹窗
 import { ElMessage, ElMessageBox } from 'element-plus'
+
+// roleApi：角色相关 API（增删改查）
+// RoleItem：角色数据项的 TypeScript 类型
 import { roleApi, RoleItem } from '@/api/role'
 
+// loading：表格加载状态（绑定 v-loading，请求时显示遮罩动画）
 const loading = ref(false)
+
+// tableData：角色列表数据，供 el-table 渲染
 const tableData = ref<RoleItem[]>([])
+
+// dialogVisible：新增/编辑弹窗是否显示
+// dialogTitle：弹窗标题文字
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 
+// ---------- 搜索表单 ----------
+// searchForm：搜索条件（角色名称、状态）
+// status 为可选值（undefined 表示"全部"）
 const searchForm = reactive({
   name: '',
   status: undefined as number | undefined,
 })
 
+// ---------- 分页参数 ----------
+// page    ：当前页码
+// pageSize：每页条数
+// total   ：后端返回的总记录数
 const pagination = reactive({
   page: 1,
   pageSize: 10,
   total: 0,
 })
 
+// ---------- 弹窗表单数据 ----------
+// form：角色编辑表单，id=0 为新增，id>0 为编辑
+// 与用户管理类似，但多了一个 "角色编码 (code)" 字段
 const form = reactive({
   id: 0,
   name: '',
@@ -119,6 +144,7 @@ const form = reactive({
   status: 1,
 })
 
+// fetchData：请求角色列表（分页 + 按名称/状态筛选）
 const fetchData = async () => {
   loading.value = true
   try {
@@ -135,29 +161,34 @@ const fetchData = async () => {
   }
 }
 
+// handleSearch：点击"查询"（重置到第一页再搜索）
 const handleSearch = () => {
   pagination.page = 1
   fetchData()
 }
 
+// handleReset：点击"重置"（清空搜索条件）
 const handleReset = () => {
   searchForm.name = ''
   searchForm.status = undefined
   handleSearch()
 }
 
+// handleAdd：新增角色（重置表单，打开弹窗）
 const handleAdd = () => {
   dialogTitle.value = '新增角色'
   Object.assign(form, { id: 0, name: '', code: '', sort: 0, desc: '', status: 1 })
   dialogVisible.value = true
 }
 
+// handleEdit：编辑角色（将行数据填充到表单）
 const handleEdit = (row: RoleItem) => {
   dialogTitle.value = '编辑角色'
   Object.assign(form, { ...row })
   dialogVisible.value = true
 }
 
+// handleDelete：删除角色（先弹确认框）
 const handleDelete = async (row: RoleItem) => {
   await ElMessageBox.confirm('确定要删除该角色吗？', '提示', { type: 'warning' })
   await roleApi.delete(row.id)
@@ -165,8 +196,15 @@ const handleDelete = async (row: RoleItem) => {
   fetchData()
 }
 
+// ----------------------------------------------------------
+// handleSubmit：提交角色表单（新增/编辑）
+// 与用户管理不同的是：
+//   编辑时角色编码 (code) 不可修改
+//   模板中的 :disabled="!!form.id" 在编辑模式下禁用该输入框
+// ----------------------------------------------------------
 const handleSubmit = async () => {
   if (form.id) {
+    // 编辑模式
     await roleApi.update(form.id, {
       name: form.name,
       code: form.code,
@@ -176,6 +214,7 @@ const handleSubmit = async () => {
     })
     ElMessage.success('更新成功')
   } else {
+    // 新增模式
     await roleApi.create({
       name: form.name,
       code: form.code,
@@ -189,6 +228,7 @@ const handleSubmit = async () => {
   fetchData()
 }
 
+// onMounted：页面加载时自动拉取角色列表
 onMounted(fetchData)
 </script>
 

@@ -1,9 +1,16 @@
+// global.scss — 全局基础样式文件
+// 在 main.ts 中被导入（import './assets/styles/global.scss'），作用于整个应用
+
+// 通配选择器 *：清除所有元素的默认外边距和内边距
+// box-sizing: border-box 让元素的 padding 和 border 计入 width/height 内，布局更易控制
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+// html 和 body 以及 Vue 挂载的 #app 元素：高度占满浏览器窗口
+// font-family 设置系统字体栈，优先使用系统原生字体，提升渲染性能
 html, body, #app {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
