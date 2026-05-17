@@ -56,6 +56,7 @@
         </el-form-item>
       </el-form>
       <div class="login-footer">
+        <el-button type="primary" link size="small" @click="router.push('/')">返回工具首页</el-button>
         <span>© 2026 瓦特的工具站. All rights reserved.</span>
         <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" class="icp-link">粤ICP备2025511523号</a>
       </div>

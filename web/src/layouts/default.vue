@@ -10,7 +10,7 @@
         background-color="#304156"
         text-color="#bfcbd9"
         active-text-color="#409eff"
-        @select="sidebarOpen = false"
+        @select="onMenuSelect"
       >
         <el-menu-item index="/tools">
           <el-icon><Tool /></el-icon>
@@ -77,6 +77,12 @@ const router = useRouter()
 const userStore = useUserStore()
 const sidebarOpen = ref(window.innerWidth >= 768)
 const isLoggedIn = computed(() => !!userStore.token)
+
+const onMenuSelect = () => {
+  if (window.innerWidth < 768) {
+    sidebarOpen.value = false
+  }
+}
 
 const handleLogout = async () => {
   try {
