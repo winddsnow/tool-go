@@ -39,6 +39,17 @@
       <p>高效、便捷的开发工具集合</p>
     </div>
 
+    <!-- 开源信息栏：引导 Star / 跳转仓库 -->
+    <div class="oss-banner">
+      <span class="oss-icon">★</span>
+      <span class="oss-text">
+        本项目已开源 —
+        <a href="https://gitee.com/winddsnow/tool-go" target="_blank" rel="noopener noreferrer">Gitee 仓库</a>
+        ，欢迎
+        <a href="https://gitee.com/winddsnow/tool-go" target="_blank" rel="noopener noreferrer">Star ⭐</a>
+      </span>
+    </div>
+
     <!-- 工具卡片网格，每个卡片点击后弹出对应的工具弹窗 -->
     <div class="tools-grid">
       <div class="tool-card" @click="openTool('timestamp')">
@@ -120,12 +131,17 @@
       </div>
     </div>
 
+    <!-- 页面底部：博客链接 -->
+    <div class="tools-footer">
+      <span>访问我的博客：</span>
+      <a href="https://www.blog.winddsnow.top/" target="_blank" rel="noopener noreferrer">https://www.blog.winddsnow.top/</a>
+    </div>
+
     <!--
       el-dialog：Element Plus 的弹窗组件
-      v-model="toolVisible"：控制弹窗显示/隐藏
-      :title="currentTool?.title"：动态显示当前工具的标题
-      :width="isMobile ? '95%' : '800px'"：手机上宽度占 95%，桌面固定 800px
-      destroy-on-close：关闭弹窗时销毁内部组件，确保每次打开都是全新实例
+      - isMobile 计算属性控制宽度：移动端 95%，桌面 800px
+      - destroy-on-close：关闭弹窗时销毁子组件，避免缓存状态
+      - component :is 动态渲染选中工具的组件
     -->
     <el-dialog v-model="toolVisible" :title="currentTool?.title" :width="isMobile ? '95%' : '800px'" destroy-on-close>
       <!--
@@ -366,6 +382,62 @@ onMounted(() => {
       transform: translateX(-10px);
       transition: all 0.3s ease;
       color: #409eff;
+    }
+  }
+
+  .oss-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff7e6 0%, #fffbe6 100%);
+    border: 1px solid #ffe58f;
+    border-radius: 12px;
+    font-size: 14px;
+
+    .oss-icon {
+      color: #faad14;
+      font-size: 18px;
+    }
+
+    .oss-text {
+      color: #8c8c8c;
+
+      a {
+        color: #409eff;
+        text-decoration: none;
+        font-weight: 500;
+
+        &:hover {
+          color: #faad14;
+          text-decoration: underline;
+        }
+      }
+    }
+
+    @media (max-width: 480px) {
+      font-size: 13px;
+      padding: 10px 14px;
+      flex-wrap: wrap;
+    }
+  }
+
+  .tools-footer {
+    text-align: center;
+    padding: 24px 20px 8px;
+    font-size: 13px;
+    color: #8c8c8c;
+
+    a {
+      color: #409eff;
+      text-decoration: none;
+
+      &:hover {
+        color: #faad14;
+        text-decoration: underline;
+      }
     }
   }
 }
