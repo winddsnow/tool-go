@@ -1,0 +1,37 @@
+server:
+  address: ":8000"
+  serverRoot: "resource/public"
+  indexFiles: ["index.html", "main.html"]
+  dumpRouterMap: true
+  routeOverWrite: true
+  openapiPath: "/api.json"
+  swaggerPath: "/swagger"
+  accessLogEnabled: true
+  accessLogPattern: "all"
+  pprofEnabled: false
+  maxHeaderBytes: "10KB"
+  clientMaxBodySize: "200MB"
+
+logger:
+  path: "manifest/log/"
+  level: "all"
+  stdout: true
+  file:
+    rotateExpire: "7d"
+    rotateBackupExpire: "30d"
+
+database:
+  default:
+    link: "pgsql:walter:walter@tcp(192.168.3.111:5432)/tool_go_dev?sslmode=disable"
+    debug: true
+    maxIdle: 10
+    maxOpen: 100
+    maxLifetime: "30s"
+    queryTimeout: "30s"
+    execTimeout: "30s"
+    dryRun: false
+
+jwt:
+  secret: "dev-jwt-secret-key-123456"
+  expires: "24h"
+  issuer: "tool-go-dev"
