@@ -94,7 +94,7 @@ func (s *sUser) GetOne(ctx context.Context, req *v1.UserGetOneReq) (*v1.UserGetO
 		return nil, err
 	}
 	if user == nil {
-		return nil, gerror.New("用户不存�?)
+		return nil, gerror.New("用户不存在")
 	}
 
 	return &v1.UserGetOneRes{
@@ -107,6 +107,41 @@ func (s *sUser) GetOne(ctx context.Context, req *v1.UserGetOneReq) (*v1.UserGetO
 		CreatedAt: user.CreatedAt.String(),
 		UpdatedAt: user.UpdatedAt.String(),
 	}, nil
+}
+
+func (s *sUser) GetRoles(ctx context.Context, req *v1.UserGetRolesReq) (*v1.UserGetRolesRes, error) {
+	var roleIds []uint64
+	err := dao.UserRole.Ctx(ctx).
+		Where(dao.UserRole.Columns.UserId, req.Id).
+		Array(&roleIds, dao.UserRole.Columns.RoleId)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UserGetRolesRes{RoleIds: roleIds}, nil
+}
+
+func (s *sUser) AssignRoles(ctx context.Context, req *v1.UserAssignRolesReq) error {
+	return dao.UserRole.Ctx(ctx).Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		_, err := tx.Model(dao.UserRole.Table).Where(dao.UserRole.Columns.UserId, req.Id).Delete()
+		if err != nil {
+			return err
+		}
+
+		if len(req.RoleIds) == 0 {
+			return nil
+		}
+
+		data := make([]gdb.Map, 0, len(req.RoleIds))
+		for _, roleId := range req.RoleIds {
+			data = append(data, gdb.Map{
+				dao.UserRole.Columns.UserId: req.Id,
+				dao.UserRole.Columns.RoleId: roleId,
+			})
+		}
+
+		_, err = tx.Model(dao.UserRole.Table).Data(data).Insert()
+		return err
+	})
 }
 
 func (s *sUser) List(ctx context.Context, req *v1.UserListReq) (*v1.UserListRes, error) {

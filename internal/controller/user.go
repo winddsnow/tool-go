@@ -34,3 +34,12 @@ func (c *cUser) List(ctx context.Context, req *v1.UserListReq) (*v1.UserListRes,
 	req.UserId = middleware.GetUserId(ctx)
 	return service.User().List(ctx, req)
 }
+
+func (c *cUser) GetRoles(ctx context.Context, req *v1.UserGetRolesReq) (*v1.UserGetRolesRes, error) {
+	return service.User().GetRoles(ctx, req)
+}
+
+func (c *cUser) AssignRoles(ctx context.Context, req *v1.UserAssignRolesReq) (*v1.UserAssignRolesRes, error) {
+	err := service.User().AssignRoles(ctx, req)
+	return &v1.UserAssignRolesRes{}, err
+}

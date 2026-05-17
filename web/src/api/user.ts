@@ -41,4 +41,6 @@ export const userApi = {
   getOne: (id: number) => request.get(`/user/${id}`),
   list: (params: { page: number; page_size: number; username?: string; status?: number }) =>
     request.get('/user', { params }),
+  getRoles: (id: number) => request.get<{ role_ids: number[] }>(`/user/${id}/roles`),
+  assignRoles: (id: number, role_ids: number[]) => request.put(`/user/${id}/roles`, { role_ids }),
 }

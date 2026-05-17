@@ -75,3 +75,20 @@ type UserItem struct {
 	Status    uint   `json:"status" dc:"状态"`
 	CreatedAt string `json:"created_at" dc:"创建时间"`
 }
+
+type UserGetRolesReq struct {
+	g.Meta `path:"/user/{id}/roles" method:"get" tags:"User" summary:"获取用户角色"`
+	Id     uint64 `path:"id" v:"required#ID不能为空" dc:"用户ID"`
+}
+
+type UserGetRolesRes struct {
+	RoleIds []uint64 `json:"role_ids" dc:"角色ID列表"`
+}
+
+type UserAssignRolesReq struct {
+	g.Meta  `path:"/user/{id}/roles" method:"put" tags:"User" summary:"分配用户角色"`
+	Id      uint64   `path:"id" v:"required#ID不能为空" dc:"用户ID"`
+	RoleIds []uint64 `json:"role_ids" v:"required#角色列表不能为空" dc:"角色ID列表"`
+}
+
+type UserAssignRolesRes struct{}

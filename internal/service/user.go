@@ -13,6 +13,8 @@ type IUser interface {
 	Update(ctx context.Context, req *v1.UserUpdateReq) error
 	GetOne(ctx context.Context, req *v1.UserGetOneReq) (*v1.UserGetOneRes, error)
 	List(ctx context.Context, req *v1.UserListReq) (*v1.UserListRes, error)
+	GetRoles(ctx context.Context, req *v1.UserGetRolesReq) (*v1.UserGetRolesRes, error)
+	AssignRoles(ctx context.Context, req *v1.UserAssignRolesReq) error
 }
 
 var (

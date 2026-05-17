@@ -31,7 +31,7 @@ func (s *sRole) Create(ctx context.Context, req *v1.RoleCreateReq) (*v1.RoleCrea
 		return nil, err
 	}
 	if count > 0 {
-		return nil, gerror.New("role code already exists")
+		return nil, gerror.New("角色编码已存在")
 	}
 
 	result, err := dao.Role.Data(&do.Role{

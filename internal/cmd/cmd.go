@@ -35,9 +35,11 @@ var (
 							controller.Dashboard,
 						)
 
-						auth.Group("/user", func(user *ghttp.RouterGroup) {
-							user.POST("", middleware.Permission("super_admin"), controller.User.Create)
-						})
+					auth.Group("/user", func(user *ghttp.RouterGroup) {
+						user.POST("", middleware.Permission("super_admin"), controller.User.Create)
+						user.GET("/{id}/roles", controller.User.GetRoles)
+						user.PUT("/{id}/roles", controller.User.AssignRoles)
+					})
 					})
 				})
 			})

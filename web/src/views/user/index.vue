@@ -38,9 +38,10 @@
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间" />
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="280">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
+            <el-button type="warning" link @click="handleAssignRoles(row)">分配权限</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -84,6 +85,25 @@
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="roleDialogVisible" title="分配权限" width="500px">
+      <el-form label-width="100px">
+        <el-form-item label="角色">
+          <el-select v-model="selectedRoleIds" multiple placeholder="请选择角色" style="width: 100%">
+            <el-option
+              v-for="role in allRoles"
+              :key="role.id"
+              :label="role.name"
+              :value="role.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="roleDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitAssignRoles">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -92,12 +112,18 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 import { userApi, UserItem } from '@/api/user'
+import { roleApi, RoleItem } from '@/api/role'
 
 const userStore = useUserStore()
 const loading = ref(false)
 const tableData = ref<UserItem[]>([])
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
+
+const roleDialogVisible = ref(false)
+const allRoles = ref<RoleItem[]>([])
+const selectedRoleIds = ref<number[]>([])
+const currentUserId = ref(0)
 
 const searchForm = reactive({
   username: '',
@@ -133,6 +159,15 @@ const fetchData = async () => {
     pagination.total = res.total
   } finally {
     loading.value = false
+  }
+}
+
+const fetchAllRoles = async () => {
+  try {
+    const res = await roleApi.list({ page: 1, page_size: 1000 })
+    allRoles.value = res.list
+  } catch {
+    // ignore
   }
 }
 
@@ -191,7 +226,31 @@ const handleSubmit = async () => {
   fetchData()
 }
 
-onMounted(fetchData)
+const handleAssignRoles = async (row: UserItem) => {
+  currentUserId.value = row.id
+  roleDialogVisible.value = true
+  try {
+    const res = await userApi.getRoles(row.id)
+    selectedRoleIds.value = res.role_ids
+  } catch {
+    selectedRoleIds.value = []
+  }
+}
+
+const submitAssignRoles = async () => {
+  try {
+    await userApi.assignRoles(currentUserId.value, selectedRoleIds.value)
+    ElMessage.success('分配成功')
+    roleDialogVisible.value = false
+  } catch {
+    // ignore
+  }
+}
+
+onMounted(() => {
+  fetchData()
+  fetchAllRoles()
+})
 </script>
 
 <style scoped lang="scss">
