@@ -7,7 +7,8 @@ import (
 type User struct {
 	Id        uint64      `json:"id"        orm:"id"        description:"User ID"`
 	Username  string      `json:"username"  orm:"username"  description:"Username"`
-	Password  string      `json:"password"  orm:"password"  description:"Password"`
+	Password  string      `json:"password"  orm:"password"  description:"Password hash"`
+	Salt      string      `json:"salt"      orm:"salt"      description:"Password salt"`
 	Nickname  string      `json:"nickname"  orm:"nickname"  description:"Nickname"`
 	Email     string      `json:"email"     orm:"email"     description:"Email"`
 	Phone     string      `json:"phone"     orm:"phone"     description:"Phone"`

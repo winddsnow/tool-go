@@ -9,6 +9,7 @@ import (
 
 	v1 "tool-go/api/v1"
 	"tool-go/internal/dao"
+	"tool-go/internal/library/password"
 	"tool-go/internal/model/do"
 	"tool-go/internal/model/entity"
 	"tool-go/internal/service"
@@ -31,12 +32,18 @@ func (s *sUser) Create(ctx context.Context, req *v1.UserCreateReq) (*v1.UserCrea
 		return nil, err
 	}
 	if count > 0 {
-		return nil, gerror.New("username already exists")
+		return nil, gerror.New("用户名已存在")
+	}
+
+	hash, salt, err := password.CreatePassword(req.Password)
+	if err != nil {
+		return nil, gerror.New("密码加密失败")
 	}
 
 	result, err := dao.User.Data(&do.User{
 		Username:  req.Username,
-		Password:  req.Password,
+		Password:  hash,
+		Salt:      salt,
 		Nickname:  req.Nickname,
 		Email:     req.Email,
 		Phone:     req.Phone,
@@ -87,7 +94,7 @@ func (s *sUser) GetOne(ctx context.Context, req *v1.UserGetOneReq) (*v1.UserGetO
 		return nil, err
 	}
 	if user == nil {
-		return nil, gerror.New("user not found")
+		return nil, gerror.New("用户不存在")
 	}
 
 	return &v1.UserGetOneRes{

@@ -19,6 +19,7 @@ type userColumns struct {
 	Id        string
 	Username  string
 	Password  string
+	Salt      string
 	Nickname  string
 	Email     string
 	Phone     string
@@ -36,6 +37,7 @@ func init() {
 			Id:        "id",
 			Username:  "username",
 			Password:  "password",
+			Salt:      "salt",
 			Nickname:  "nickname",
 			Email:     "email",
 			Phone:     "phone",

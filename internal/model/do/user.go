@@ -10,6 +10,7 @@ type User struct {
 	Id        any
 	Username  any
 	Password  any
+	Salt      any
 	Nickname  any
 	Email     any
 	Phone     any

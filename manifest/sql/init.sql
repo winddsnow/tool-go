@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     "id" BIGSERIAL PRIMARY KEY,
     "username" VARCHAR(64) NOT NULL UNIQUE,
     "password" VARCHAR(128) NOT NULL,
+    "salt" VARCHAR(32) NOT NULL,
     "nickname" VARCHAR(64) DEFAULT '',
     "email" VARCHAR(128) DEFAULT '',
     "phone" VARCHAR(32) DEFAULT '',
@@ -16,14 +17,15 @@ CREATE INDEX "idx_user_username" ON "user" ("username");
 CREATE INDEX "idx_user_status" ON "user" ("status");
 CREATE INDEX "idx_user_deleted_at" ON "user" ("deleted_at");
 
-COMMENT ON TABLE "user" IS 'User table';
-COMMENT ON COLUMN "user"."id" IS 'User ID';
-COMMENT ON COLUMN "user"."username" IS 'Username';
-COMMENT ON COLUMN "user"."password" IS 'Password';
-COMMENT ON COLUMN "user"."nickname" IS 'Nickname';
-COMMENT ON COLUMN "user"."email" IS 'Email';
-COMMENT ON COLUMN "user"."phone" IS 'Phone';
-COMMENT ON COLUMN "user"."status" IS 'Status: 1=active, 0=disabled';
+COMMENT ON TABLE "user" IS '用户表';
+COMMENT ON COLUMN "user"."id" IS '用户ID';
+COMMENT ON COLUMN "user"."username" IS '用户名';
+COMMENT ON COLUMN "user"."password" IS '密码哈希 (MD5 + Salt)';
+COMMENT ON COLUMN "user"."salt" IS '密码盐值';
+COMMENT ON COLUMN "user"."nickname" IS '昵称';
+COMMENT ON COLUMN "user"."email" IS '邮箱';
+COMMENT ON COLUMN "user"."phone" IS '手机号';
+COMMENT ON COLUMN "user"."status" IS '状态: 1=启用, 0=禁用';
 
 -- Role table
 CREATE TABLE IF NOT EXISTS "role" (
@@ -42,13 +44,13 @@ CREATE INDEX "idx_role_code" ON "role" ("code");
 CREATE INDEX "idx_role_status" ON "role" ("status");
 CREATE INDEX "idx_role_deleted_at" ON "role" ("deleted_at");
 
-COMMENT ON TABLE "role" IS 'Role table';
-COMMENT ON COLUMN "role"."id" IS 'Role ID';
-COMMENT ON COLUMN "role"."name" IS 'Role name';
-COMMENT ON COLUMN "role"."code" IS 'Role code';
-COMMENT ON COLUMN "role"."sort" IS 'Sort order';
-COMMENT ON COLUMN "role"."status" IS 'Status: 1=active, 0=disabled';
-COMMENT ON COLUMN "role"."desc" IS 'Description';
+COMMENT ON TABLE "role" IS '角色表';
+COMMENT ON COLUMN "role"."id" IS '角色ID';
+COMMENT ON COLUMN "role"."name" IS '角色名称';
+COMMENT ON COLUMN "role"."code" IS '角色编码';
+COMMENT ON COLUMN "role"."sort" IS '排序';
+COMMENT ON COLUMN "role"."status" IS '状态: 1=启用, 0=禁用';
+COMMENT ON COLUMN "role"."desc" IS '描述';
 
 -- User-Role relation table
 CREATE TABLE IF NOT EXISTS "user_role" (
@@ -60,17 +62,17 @@ CREATE TABLE IF NOT EXISTS "user_role" (
 
 CREATE UNIQUE INDEX "idx_user_role_user_role" ON "user_role" ("user_id", "role_id");
 
-COMMENT ON TABLE "user_role" IS 'User-Role relation table';
+COMMENT ON TABLE "user_role" IS '用户角色关联表';
 
--- Insert default admin user (password: admin123)
-INSERT INTO "user" ("username", "password", "nickname", "status") VALUES
-('admin', 'admin123', 'Administrator', 1);
+-- 默认管理员账号 (密码: admin123)
+INSERT INTO "user" ("username", "password", "salt", "nickname", "status") VALUES
+('admin', 'db9160fde0526a565eb2f72d41ae6abd', 'e30904747f4731de7fb8303f52807e13', '超级管理员', 1);
 
--- Insert default roles
+-- 默认角色
 INSERT INTO "role" ("name", "code", "sort", "status", "desc") VALUES
-('Super Admin', 'super_admin', 1, 1, 'Super administrator with all permissions'),
-('Admin', 'admin', 2, 1, 'Administrator'),
-('User', 'user', 3, 1, 'Regular user');
+('超级管理员', 'super_admin', 1, 1, '拥有所有权限'),
+('管理员', 'admin', 2, 1, '管理员'),
+('普通用户', 'user', 3, 1, '普通用户');
 
--- Assign admin role to admin user
+-- 分配管理员角色
 INSERT INTO "user_role" ("user_id", "role_id") VALUES (1, 1);

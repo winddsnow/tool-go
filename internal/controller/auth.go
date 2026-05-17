@@ -10,6 +10,7 @@ import (
 	v1 "tool-go/api/v1"
 	"tool-go/internal/dao"
 	"tool-go/internal/library/jwt"
+	"tool-go/internal/library/password"
 	"tool-go/internal/middleware"
 	"tool-go/internal/model/entity"
 )
@@ -31,7 +32,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 		return nil, gerror.New("用户名或密码错误")
 	}
 
-	if user.Password != req.Password {
+	if !password.VerifyPassword(req.Password, user.Salt, user.Password) {
 		return nil, gerror.New("用户名或密码错误")
 	}
 
