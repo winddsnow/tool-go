@@ -16,10 +16,19 @@
 </template>
 
 <script setup lang="ts">
+// ============================================================
+// Vue 3 组合式 API —— 本文件是 403 无权限错误页面
+// <script setup> 中定义的变量/函数可直接在模板中使用
+// ============================================================
+
+// useRouter：获取路由实例（用于页面跳转）
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// goBack：点击"返回首页"按钮时跳转到首页
+// router.push('/') 等价于在浏览器地址栏输入 /
+// 路由会根据路径匹配到对应的组件并渲染
 const goBack = () => {
   router.push('/')
 }
