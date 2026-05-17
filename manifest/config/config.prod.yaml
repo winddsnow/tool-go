@@ -3,9 +3,14 @@ server:
 
 database:
   default:
-    link: "pgsql:{{ env DB_USER }}:{{ env DB_PASSWORD }}@tcp({{ env DB_HOST }}:{{ env DB_PORT }})/{{ env DB_NAME }}?sslmode=disable"
+    link: "pgsql:prod_user:prod_password@tcp(127.0.0.1:5432)/tool_go_prod?sslmode=disable"
     debug: false
 
 logger:
   level: "warning"
   stdout: false
+
+jwt:
+  secret: "prod-jwt-secret-key-change-me"
+  expires: "24h"
+  issuer: "tool-go"

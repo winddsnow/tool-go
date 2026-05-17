@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	passwords := []string{"admin123"}
+	passwords := []string{"walter"}
 
 	for _, pwd := range passwords {
 		hash, salt, err := password.CreatePassword(pwd)
@@ -18,6 +18,6 @@ func main() {
 		fmt.Printf("Password: %s\n", pwd)
 		fmt.Printf("Salt: %s\n", salt)
 		fmt.Printf("Hash: %s\n", hash)
-		fmt.Printf("SQL: INSERT INTO \"user\" (\"username\", \"password\", \"salt\", \"nickname\", \"status\") VALUES ('admin', '%s', '%s', '超级管理员', 1);\n\n", hash, salt)
+		fmt.Printf("SQL: INSERT INTO \"user\" (\"username\", \"password\", \"salt\", \"nickname\", \"status\") VALUES ('walter', '%s', '%s', '本地开发', 1);\n\n", hash, salt)
 	}
 }

@@ -1,18 +1,21 @@
 package dao
 
 import (
+	"context"
+
 	"tool-go/internal/model/do"
 
 	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 )
 
 var User = userDao{}
 
 type userDao struct {
-	table    string
-	group    string
-	columns  userColumns
+	Table   string
+	Group   string
+	Columns userColumns
 }
 
 type userColumns struct {
@@ -31,9 +34,9 @@ type userColumns struct {
 
 func init() {
 	User = userDao{
-		table:   "user",
-		group:   "default",
-		columns: userColumns{
+		Table: "user",
+		Group: "default",
+		Columns: userColumns{
 			Id:        "id",
 			Username:  "username",
 			Password:  "password",
@@ -49,22 +52,14 @@ func init() {
 	}
 }
 
-func (dao *userDao) DB(ctx context.Context) *gdb.Model {
-	return gdb.Ctx(ctx).Safe().Model(dao.table).Safe()
+func (d *userDao) Ctx(ctx context.Context) *gdb.Model {
+	return g.Model(d.Table).Safe().Ctx(ctx)
 }
 
-func (dao *userDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) error {
-	return gdb.Ctx(ctx).Transaction(ctx, f)
+func (d *userDao) Data(data *do.User) *gdb.Model {
+	return g.Model(d.Table).Ctx(gctx.New()).Data(data)
 }
 
-func (dao *userDao) Ctx(ctx context.Context) *gdb.Model {
-	return dao.DB(ctx)
-}
-
-func (dao *userDao) Data(data *do.User) *gdb.Model {
-	return dao.DB(gctx.New()).Data(data)
-}
-
-func (dao *userDao) As(as string) *gdb.Model {
-	return dao.DB(gctx.New()).As(as)
+func (d *userDao) As(as string) *gdb.Model {
+	return g.Model(d.Table).Ctx(gctx.New()).As(as)
 }

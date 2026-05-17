@@ -10,7 +10,7 @@ import (
 
 func Permission(requiredRole string) func(r *ghttp.Request) {
 	return func(r *ghttp.Request) {
-		ctx := r.GetContext()
+		ctx := r.GetCtx()
 		if !HasRole(ctx, requiredRole) {
 			r.Response.WriteStatus(http.StatusForbidden)
 			r.Response.WriteJsonExit(g.Map{

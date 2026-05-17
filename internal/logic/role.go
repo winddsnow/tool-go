@@ -26,7 +26,7 @@ type sRole struct{}
 
 func (s *sRole) Create(ctx context.Context, req *v1.RoleCreateReq) (*v1.RoleCreateRes, error) {
 	var count int
-	err := dao.Role.Ctx(ctx).Where(dao.Role.columns.Code, req.Code).Count(&count)
+	err := dao.Role.Ctx(ctx).Where(dao.Role.Columns.Code, req.Code).Count(&count)
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +52,8 @@ func (s *sRole) Create(ctx context.Context, req *v1.RoleCreateReq) (*v1.RoleCrea
 }
 
 func (s *sRole) Delete(ctx context.Context, req *v1.RoleDeleteReq) error {
-	_, err := dao.Role.Ctx(ctx).Where(dao.Role.columns.Id, req.Id).Update(gdb.Map{
-		dao.Role.columns.DeletedAt: gtime.Now(),
+	_, err := dao.Role.Ctx(ctx).Where(dao.Role.Columns.Id, req.Id).Update(gdb.Map{
+		dao.Role.Columns.DeletedAt: gtime.Now(),
 	})
 	return err
 }
@@ -71,13 +71,13 @@ func (s *sRole) Update(ctx context.Context, req *v1.RoleUpdateReq) error {
 	data.Desc = req.Desc
 	data.UpdatedAt = gtime.Now()
 
-	_, err := dao.Role.Ctx(ctx).Where(dao.Role.columns.Id, req.Id).Data(data).Update()
+	_, err := dao.Role.Ctx(ctx).Where(dao.Role.Columns.Id, req.Id).Data(data).Update()
 	return err
 }
 
 func (s *sRole) GetOne(ctx context.Context, req *v1.RoleGetOneReq) (*v1.RoleGetOneRes, error) {
 	var role *entity.Role
-	err := dao.Role.Ctx(ctx).Where(dao.Role.columns.Id, req.Id).WhereNull(dao.Role.columns.DeletedAt).Scan(&role)
+	err := dao.Role.Ctx(ctx).Where(dao.Role.Columns.Id, req.Id).WhereNull(dao.Role.Columns.DeletedAt).Scan(&role)
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +98,13 @@ func (s *sRole) GetOne(ctx context.Context, req *v1.RoleGetOneReq) (*v1.RoleGetO
 }
 
 func (s *sRole) List(ctx context.Context, req *v1.RoleListReq) (*v1.RoleListRes, error) {
-	m := dao.Role.Ctx(ctx).WhereNull(dao.Role.columns.DeletedAt)
+	m := dao.Role.Ctx(ctx).WhereNull(dao.Role.Columns.DeletedAt)
 
 	if req.Name != "" {
-		m = m.WhereLike(dao.Role.columns.Name, "%"+req.Name+"%")
+		m = m.WhereLike(dao.Role.Columns.Name, "%"+req.Name+"%")
 	}
 	if req.Status > 0 {
-		m = m.Where(dao.Role.columns.Status, req.Status)
+		m = m.Where(dao.Role.Columns.Status, req.Status)
 	}
 
 	var total int
@@ -114,7 +114,7 @@ func (s *sRole) List(ctx context.Context, req *v1.RoleListReq) (*v1.RoleListRes,
 	}
 
 	var list []*entity.Role
-	err = m.Page(req.Page, req.PageSize).OrderAsc(dao.Role.columns.Sort).OrderDesc(dao.Role.columns.Id).Scan(&list)
+	err = m.Page(req.Page, req.PageSize).OrderAsc(dao.Role.Columns.Sort).OrderDesc(dao.Role.Columns.Id).Scan(&list)
 	if err != nil {
 		return nil, err
 	}

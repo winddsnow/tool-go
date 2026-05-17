@@ -22,8 +22,8 @@ type cAuth struct{}
 func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, error) {
 	var user *entity.User
 	err := dao.User.Ctx(ctx).
-		Where(dao.User.columns.Username, req.Username).
-		WhereNull(dao.User.columns.DeletedAt).
+		Where(dao.User.Columns.Username, req.Username).
+		WhereNull(dao.User.Columns.DeletedAt).
 		Scan(&user)
 	if err != nil {
 		return nil, err
@@ -40,19 +40,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 		return nil, gerror.New("账号已被禁用")
 	}
 
-	var roles []string
-	err = dao.UserRole.Ctx(ctx).
-		Fields(dao.Role.columns.Code).
-		Where(dao.UserRole.columns.UserId, user.Id).
-		LeftJoin("role", dao.Role.table+".id="+dao.UserRole.table+"."+dao.UserRole.columns.RoleId).
-		WhereNull(dao.Role.columns.DeletedAt).
-		Array(&roles)
-	if err != nil {
-		g.Log().Error(ctx, "获取用户角色失败:", err)
-	}
-	if len(roles) == 0 {
-		roles = []string{"user"}
-	}
+	roles := getUserRoles(ctx, user.Id)
 
 	jwtConfig := g.Cfg().MustGet(ctx, "jwt").MapStrVar()
 	secret := jwtConfig["secret"].String()
@@ -91,26 +79,14 @@ func (c *cAuth) GetUserInfo(ctx context.Context, req *v1.GetUserInfoReq) (*v1.Ge
 
 	var user *entity.User
 	err := dao.User.Ctx(ctx).
-		Where(dao.User.columns.Id, userId).
-		WhereNull(dao.User.columns.DeletedAt).
+		Where(dao.User.Columns.Id, userId).
+		WhereNull(dao.User.Columns.DeletedAt).
 		Scan(&user)
 	if err != nil || user == nil {
 		return nil, gerror.New("用户不存在")
 	}
 
-	var roles []string
-	err = dao.UserRole.Ctx(ctx).
-		Fields(dao.Role.columns.Code).
-		Where(dao.UserRole.columns.UserId, user.Id).
-		LeftJoin("role", dao.Role.table+".id="+dao.UserRole.table+"."+dao.UserRole.columns.RoleId).
-		WhereNull(dao.Role.columns.DeletedAt).
-		Array(&roles)
-	if err != nil {
-		g.Log().Error(ctx, "获取用户角色失败:", err)
-	}
-	if len(roles) == 0 {
-		roles = []string{"user"}
-	}
+	roles := getUserRoles(ctx, user.Id)
 
 	return &v1.GetUserInfoRes{
 		UserId:   user.Id,
@@ -122,4 +98,25 @@ func (c *cAuth) GetUserInfo(ctx context.Context, req *v1.GetUserInfoReq) (*v1.Ge
 
 func (c *cAuth) Logout(ctx context.Context, req *v1.LogoutReq) (*v1.LogoutRes, error) {
 	return &v1.LogoutRes{}, nil
+}
+
+func getUserRoles(ctx context.Context, userId uint64) []string {
+	result, err := dao.Role.Ctx(ctx).
+		LeftJoin("user_role", "user_role.role_id=role.id").
+		Where("user_role.user_id", userId).
+		WhereNull(dao.Role.Columns.DeletedAt).
+		Fields(dao.Role.Columns.Code).
+		Array()
+	if err != nil {
+		g.Log().Error(ctx, "获取用户角色失败:", err)
+		return []string{"user"}
+	}
+	if len(result) == 0 {
+		return []string{"user"}
+	}
+	codes := make([]string, len(result))
+	for i, v := range result {
+		codes[i] = v.String()
+	}
+	return codes
 }

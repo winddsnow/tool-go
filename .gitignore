@@ -31,6 +31,7 @@ Thumbs.db
 
 # Config (contains secrets)
 .env
+.env.local
 manifest/config/config.*.yaml
 !manifest/config/config.local.yaml
 !manifest/config/config.prod.yaml

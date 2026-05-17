@@ -1,18 +1,21 @@
 package dao
 
 import (
+	"context"
+
 	"tool-go/internal/model/do"
 
 	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 )
 
 var Role = roleDao{}
 
 type roleDao struct {
-	table    string
-	group    string
-	columns  roleColumns
+	Table   string
+	Group   string
+	Columns roleColumns
 }
 
 type roleColumns struct {
@@ -29,9 +32,9 @@ type roleColumns struct {
 
 func init() {
 	Role = roleDao{
-		table:   "role",
-		group:   "default",
-		columns: roleColumns{
+		Table: "role",
+		Group: "default",
+		Columns: roleColumns{
 			Id:        "id",
 			Name:      "name",
 			Code:      "code",
@@ -45,22 +48,14 @@ func init() {
 	}
 }
 
-func (dao *roleDao) DB(ctx context.Context) *gdb.Model {
-	return gdb.Ctx(ctx).Safe().Model(dao.table).Safe()
+func (d *roleDao) Ctx(ctx context.Context) *gdb.Model {
+	return g.Model(d.Table).Safe().Ctx(ctx)
 }
 
-func (dao *roleDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) error {
-	return gdb.Ctx(ctx).Transaction(ctx, f)
+func (d *roleDao) Data(data *do.Role) *gdb.Model {
+	return g.Model(d.Table).Ctx(gctx.New()).Data(data)
 }
 
-func (dao *roleDao) Ctx(ctx context.Context) *gdb.Model {
-	return dao.DB(ctx)
-}
-
-func (dao *roleDao) Data(data *do.Role) *gdb.Model {
-	return dao.DB(gctx.New()).Data(data)
-}
-
-func (dao *roleDao) As(as string) *gdb.Model {
-	return dao.DB(gctx.New()).As(as)
+func (d *roleDao) As(as string) *gdb.Model {
+	return g.Model(d.Table).Ctx(gctx.New()).As(as)
 }

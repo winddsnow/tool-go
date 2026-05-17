@@ -22,7 +22,7 @@ logger:
 
 database:
   default:
-    link: "pgsql:{{ env DB_USER }}:{{ env DB_PASSWORD }}@tcp({{ env DB_HOST }}:{{ env DB_PORT }})/{{ env DB_NAME }}?sslmode=disable"
+    link: "pgsql:walter:walter@tcp(192.168.3.111:5432)/tool_go_dev?sslmode=disable"
     debug: true
     maxIdle: 10
     maxOpen: 100
@@ -32,6 +32,6 @@ database:
     dryRun: false
 
 jwt:
-  secret: "tool-go-jwt-secret-key-change-in-production"
+  secret: "dev-jwt-secret-key-123456"
   expires: "24h"
-  issuer: "tool-go"
+  issuer: "tool-go-dev"

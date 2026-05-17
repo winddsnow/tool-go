@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/gogf/gf/v2/errors/gcode"
-	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -21,7 +20,7 @@ const (
 )
 
 func Auth(r *ghttp.Request) {
-	ctx := r.GetContext()
+	ctx := r.GetCtx()
 	jwtConfig := g.Cfg().MustGet(ctx, "jwt").MapStrStr()
 	secret := jwtConfig["secret"]
 	if secret == "" {

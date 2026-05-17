@@ -27,7 +27,7 @@ type sUser struct{}
 
 func (s *sUser) Create(ctx context.Context, req *v1.UserCreateReq) (*v1.UserCreateRes, error) {
 	var count int
-	err := dao.User.Ctx(ctx).Where(dao.User.columns.Username, req.Username).Count(&count)
+	err := dao.User.Ctx(ctx).Where(dao.User.Columns.Username, req.Username).Count(&count)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +60,8 @@ func (s *sUser) Create(ctx context.Context, req *v1.UserCreateReq) (*v1.UserCrea
 }
 
 func (s *sUser) Delete(ctx context.Context, req *v1.UserDeleteReq) error {
-	_, err := dao.User.Ctx(ctx).Where(dao.User.columns.Id, req.Id).Update(gdb.Map{
-		dao.User.columns.DeletedAt: gtime.Now(),
+	_, err := dao.User.Ctx(ctx).Where(dao.User.Columns.Id, req.Id).Update(gdb.Map{
+		dao.User.Columns.DeletedAt: gtime.Now(),
 	})
 	return err
 }
@@ -83,18 +83,18 @@ func (s *sUser) Update(ctx context.Context, req *v1.UserUpdateReq) error {
 	data.Status = req.Status
 	data.UpdatedAt = gtime.Now()
 
-	_, err := dao.User.Ctx(ctx).Where(dao.User.columns.Id, req.Id).Data(data).Update()
+	_, err := dao.User.Ctx(ctx).Where(dao.User.Columns.Id, req.Id).Data(data).Update()
 	return err
 }
 
 func (s *sUser) GetOne(ctx context.Context, req *v1.UserGetOneReq) (*v1.UserGetOneRes, error) {
 	var user *entity.User
-	err := dao.User.Ctx(ctx).Where(dao.User.columns.Id, req.Id).WhereNull(dao.User.columns.DeletedAt).Scan(&user)
+	err := dao.User.Ctx(ctx).Where(dao.User.Columns.Id, req.Id).WhereNull(dao.User.Columns.DeletedAt).Scan(&user)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
-		return nil, gerror.New("用户不存在")
+		return nil, gerror.New("用户不存�?)
 	}
 
 	return &v1.UserGetOneRes{
@@ -110,13 +110,13 @@ func (s *sUser) GetOne(ctx context.Context, req *v1.UserGetOneReq) (*v1.UserGetO
 }
 
 func (s *sUser) List(ctx context.Context, req *v1.UserListReq) (*v1.UserListRes, error) {
-	m := dao.User.Ctx(ctx).WhereNull(dao.User.columns.DeletedAt)
+	m := dao.User.Ctx(ctx).WhereNull(dao.User.Columns.DeletedAt)
 
 	if req.Username != "" {
-		m = m.WhereLike(dao.User.columns.Username, "%"+req.Username+"%")
+		m = m.WhereLike(dao.User.Columns.Username, "%"+req.Username+"%")
 	}
 	if req.Status > 0 {
-		m = m.Where(dao.User.columns.Status, req.Status)
+		m = m.Where(dao.User.Columns.Status, req.Status)
 	}
 
 	var total int
@@ -126,7 +126,7 @@ func (s *sUser) List(ctx context.Context, req *v1.UserListReq) (*v1.UserListRes,
 	}
 
 	var list []*entity.User
-	err = m.Page(req.Page, req.PageSize).OrderDesc(dao.User.columns.Id).Scan(&list)
+	err = m.Page(req.Page, req.PageSize).OrderDesc(dao.User.Columns.Id).Scan(&list)
 	if err != nil {
 		return nil, err
 	}

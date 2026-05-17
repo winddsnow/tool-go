@@ -64,9 +64,9 @@ CREATE UNIQUE INDEX "idx_user_role_user_role" ON "user_role" ("user_id", "role_i
 
 COMMENT ON TABLE "user_role" IS '用户角色关联表';
 
--- 默认管理员账号 (密码: admin123)
+-- 默认管理员账号 (密码: walter)
 INSERT INTO "user" ("username", "password", "salt", "nickname", "status") VALUES
-('admin', 'db9160fde0526a565eb2f72d41ae6abd', 'e30904747f4731de7fb8303f52807e13', '超级管理员', 1);
+('walter', 'd1c2ae9977ade915fb4e507c40eb40b6', '63da31ad9cb14c63c887433e21b06b21', '本地开发', 1);
 
 -- 默认角色
 INSERT INTO "role" ("name", "code", "sort", "status", "desc") VALUES
