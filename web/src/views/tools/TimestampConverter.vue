@@ -1,11 +1,23 @@
 <template>
   <div class="timestamp-converter">
+    <div class="timezone-select">
+      <span class="label">时区：</span>
+      <el-select v-model="timezone" size="large" style="width: 240px">
+        <el-option
+          v-for="tz in timezones"
+          :key="tz.value"
+          :label="tz.label"
+          :value="tz.value"
+        />
+      </el-select>
+    </div>
+
     <div class="converter-section">
       <h3>时间戳 → 日期时间</h3>
       <div class="input-group">
-        <el-input 
-          v-model="timestampInput" 
-          placeholder="请输入时间戳（秒或毫秒）" 
+        <el-input
+          v-model="timestampInput"
+          placeholder="请输入时间戳（秒或毫秒）"
           size="large"
           @keyup.enter="convertToDateTime"
         >
@@ -49,15 +61,41 @@
     </div>
 
     <div class="current-time">
-      <h3>当前时间</h3>
+      <h3>当前时间（{{ timezoneLabel }}）</h3>
       <div class="time-display">{{ currentTime }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+
+const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai')
+
+const timezones = [
+  { label: 'UTC (协调世界时)', value: 'UTC' },
+  { label: 'Asia/Shanghai (北京时间)', value: 'Asia/Shanghai' },
+  { label: 'Asia/Tokyo (日本标准时间)', value: 'Asia/Tokyo' },
+  { label: 'Asia/Seoul (韩国标准时间)', value: 'Asia/Seoul' },
+  { label: 'Asia/Hong_Kong (香港时间)', value: 'Asia/Hong_Kong' },
+  { label: 'Asia/Singapore (新加坡时间)', value: 'Asia/Singapore' },
+  { label: 'America/New_York (美东时间)', value: 'America/New_York' },
+  { label: 'America/Chicago (美中时间)', value: 'America/Chicago' },
+  { label: 'America/Denver (美山区时间)', value: 'America/Denver' },
+  { label: 'America/Los_Angeles (美西时间)', value: 'America/Los_Angeles' },
+  { label: 'Europe/London (伦敦时间)', value: 'Europe/London' },
+  { label: 'Europe/Berlin (柏林时间)', value: 'Europe/Berlin' },
+  { label: 'Europe/Paris (巴黎时间)', value: 'Europe/Paris' },
+  { label: 'Europe/Moscow (莫斯科时间)', value: 'Europe/Moscow' },
+  { label: 'Australia/Sydney (悉尼时间)', value: 'Australia/Sydney' },
+  { label: 'Pacific/Auckland (奥克兰时间)', value: 'Pacific/Auckland' },
+]
+
+const timezoneLabel = computed(() => {
+  const found = timezones.find(t => t.value === timezone.value)
+  return found ? found.label : timezone.value
+})
 
 const timestampInput = ref('')
 const dateTimeInput = ref('')
@@ -67,9 +105,25 @@ const currentTime = ref('')
 
 let timer: number | null = null
 
+function formatInTimezone(date: Date, tz: string): string {
+  const parts = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date)
+
+  const get = (type: string) => parts.find(p => p.type === type)?.value.padStart(2, '0') || '00'
+  return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`
+}
+
 const convertToDateTime = () => {
   if (!timestampInput.value) return
-  
+
   let ts = Number(timestampInput.value)
   if (isNaN(ts)) {
     ElMessage.warning('请输入有效的时间戳')
@@ -86,15 +140,7 @@ const convertToDateTime = () => {
     return
   }
 
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  const y = date.getFullYear()
-  const m = pad(date.getMonth() + 1)
-  const d = pad(date.getDate())
-  const h = pad(date.getHours())
-  const min = pad(date.getMinutes())
-  const s = pad(date.getSeconds())
-
-  dateTimeResult.value = `${y}-${m}-${d} ${h}:${min}:${s}`
+  dateTimeResult.value = formatInTimezone(date, timezone.value)
 }
 
 const convertToTimestamp = () => {
@@ -124,10 +170,15 @@ const copyToClipboard = (text: string) => {
 }
 
 const updateCurrentTime = () => {
-  const now = new Date()
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  currentTime.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+  currentTime.value = formatInTimezone(new Date(), timezone.value)
 }
+
+watch(timezone, () => {
+  if (dateTimeResult.value) convertToDateTime()
+  updateCurrentTime()
+})
+
+watch(dateTimeInput, convertToTimestamp)
 
 onMounted(() => {
   updateCurrentTime()
@@ -137,15 +188,25 @@ onMounted(() => {
 onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
-
-import { watch } from 'vue'
-watch(dateTimeInput, convertToTimestamp)
 </script>
 
 <style scoped lang="scss">
 .timestamp-converter {
   padding: 20px;
-  
+
+  .timezone-select {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    .label {
+      color: #606266;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+  }
+
   h3 {
     font-size: 16px;
     font-weight: 600;
