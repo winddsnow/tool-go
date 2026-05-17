@@ -1,15 +1,51 @@
-# Binaries for programs and plugins
+# Binaries
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+tool-go
 
-# Test binary, built with `go test -c`
+# Test binary
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the go coverage tool
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
+
+# GoFrame CLI
+gf
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (contains secrets)
+.env
+.env.local
+manifest/config/config.*.yaml
+!manifest/config/config.local.yaml
+!manifest/config/config.prod.yaml
+
+# Log
+manifest/log/
+
+# Node
+web/node_modules/
+web/dist/
+
+# Build
+web/dist-ssr/
+
+# Local env
+web/.env.local
+web/.env.*.local
