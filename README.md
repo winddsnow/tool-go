@@ -1,68 +1,79 @@
 # 瓦特的工具站
 
-基于 GoFrame v2 + Vue3 的开发和后台管理工具箱。
+基于 GoFrame v2 + Vue 3 + TypeScript + Element Plus 的开发和后台管理工具箱。
 
 ## 技术栈
 
 ### 后端
-- **GoFrame v2** - 高性能 Go Web 框架
-- **PostgreSQL** - 关系型数据库
-- **JWT (JSON Web Token)** - 身份认证
-- **RESTful API** - 标准接口风格
+
+- **GoFrame v2** — 高性能 Go Web 框架
+- **PostgreSQL** — 关系型数据库
+- **JWT (golang-jwt/jwt/v5)** — 身份认证
+- **RESTful API** — 标准接口风格
+- **Swagger** — 接口文档（开发模式）
 
 ### 前端
-- **Vue 3** - 渐进式 JavaScript 框架
-- **TypeScript** - 类型安全
-- **Vite** - 快速构建工具
-- **Element Plus** - UI 组件库（简体中文）
-- **Pinia** - 状态管理
-- **Vue Router** - 路由管理
+
+- **Vue 3** — 渐进式 JavaScript 框架
+- **TypeScript** — 类型安全
+- **Vite** — 快速构建工具
+- **Element Plus** — UI 组件库
+- **Pinia** — 状态管理
+- **Vue Router** — 路由管理
+
+## 功能概览
+
+### 工具箱（11 个工具，纯前端）
+
+| 分类 | 工具 |
+|------|------|
+| 文本处理 | JSON 格式化、文本对比(Diff)、正则表达式测试、大小写/Naming Case 转换 |
+| 编码加密 | Base64 编解码、哈希加密(MD5/SHA1/SHA256) |
+| 生成类 | 密码生成器、随机数据生成器(9种数据)、UUID 生成器、二维码生成 |
+| 转换类 | 时间戳转换(16个时区) |
+
+### 管理后台
+
+- **仪表盘** — 系统概览统计（用户数、角色数、访问量）
+- **用户管理** — 用户 CRUD、角色分配、分页搜索
+- **角色管理** — 角色 CRUD、权限控制、分页搜索
+
+### 认证与权限
+
+- JWT 登录认证
+- RBAC 角色权限控制（`super_admin` / `admin`）
+- 后端中间件 + 前端路由守卫双层校验
 
 ## 项目结构
 
 ```
 tool-go/
-├── api/                      # API 接口定义
-│   └── v1/                   # API v1 版本
-│       ├── auth.go           # 认证接口
-│       ├── user.go           # 用户接口
-│       └── role.go           # 角色接口
-├── internal/                 # 内部代码
-│   ├── cmd/                  # 命令行入口
-│   ├── controller/           # 控制器层
-│   ├── dao/                  # 数据访问层
-│   ├── library/              # 公共库
-│   │   └── jwt/              # JWT 工具
+├── api/v1/                   # API 请求/响应结构体 + 路由声明
+├── internal/
+│   ├── cmd/                  # 应用入口、路由绑定
+│   ├── controller/           # HTTP 控制器层
+│   ├── dao/                  # 数据访问层（手写 DAO + 列名常量）
+│   ├── library/
+│   │   ├── jwt/              # JWT 创建/解析
+│   │   └── password/         # MD5 + Salt 密码哈希
 │   ├── logic/                # 业务逻辑层
-│   ├── middleware/           # 中间件
-│   │   ├── auth.go           # 认证中间件
-│   │   └── permission.go     # 权限中间件
-│   ├── model/                # 数据模型
-│   │   ├── do/               # 数据对象
-│   │   └── entity/           # 实体对象
-│   ├── service/              # 服务接口
-│   └── packed/               # 资源打包
-├── manifest/                 # 清单文件
-│   ├── config/               # 配置文件
-│   │   ├── config.yaml       # 默认配置
-│   │   ├── config.local.yaml # 本地开发配置
-│   │   └── config.prod.yaml  # 生产环境配置
-│   ├── sql/                  # 数据库脚本
-│   │   └── init.sql
-│   └── docker/               # Docker 配置
-├── web/                      # Vue3 前端项目
+│   ├── middleware/           # CORS、Auth、Permission 中间件
+│   ├── model/
+│   │   ├── do/               # 数据操作对象
+│   │   └── entity/           # 数据库实体
+│   └── service/              # 服务接口层
+├── manifest/
+│   ├── config/               # 应用配置
+│   ├── sql/                  # 数据库初始化脚本
+│   └── docker/               # Dockerfile
+├── web/
 │   ├── src/
-│   │   ├── api/              # API 请求
+│   │   ├── api/              # Axios 请求封装
 │   │   ├── layouts/          # 布局组件
-│   │   ├── router/           # 路由配置（含守卫）
-│   │   ├── store/            # 状态管理
+│   │   ├── router/           # 路由 + 导航守卫
+│   │   ├── store/            # Pinia 状态管理
 │   │   ├── utils/            # 工具函数
 │   │   └── views/            # 页面视图
-│   │       ├── login/        # 登录页
-│   │       ├── dashboard/    # 工作台
-│   │       ├── user/         # 用户管理
-│   │       ├── role/         # 角色管理
-│   │       └── error/        # 错误页面
 │   └── ...
 └── ...
 ```
@@ -88,114 +99,73 @@ psql -U postgres -d tool_go_dev -f manifest/sql/init.sql
 ### 后端启动
 
 ```bash
-# 安装依赖
 go mod tidy
-
-# 启动服务（默认端口 8000）
-go run main.go
+go run main.go        # 开发服务器 :8000，Swagger 文档 /swagger
 ```
 
 ### 前端启动
 
 ```bash
 cd web
-
-# 安装依赖
 npm install
-
-# 启动开发服务器（默认端口 3000）
-npm run dev
+npm run dev           # 开发服务器 :3000，Vite 代理 /api → :8000
+npm run build         # 生产构建（vue-tsc 类型检查 + vite 打包）
 ```
 
-### 一键启动（Windows）
+## API 接口
 
-```bash
-start.bat
-```
-
-## 认证与权限
-
-### JWT 认证流程
-
-1. 用户通过 `POST /api/v1/login` 提交用户名密码
-2. 后端验证成功后返回 JWT Token
-3. 前端存储 Token，后续请求在 Header 中携带 `Authorization: Bearer <token>`
-4. 后端通过认证中间件验证 Token 有效性
-5. Token 过期或无效时，返回 401，前端自动跳转登录页
-
-### 权限控制
-
-- 只有 `super_admin` 角色可以创建新用户
-- 路由级权限控制：前端根据用户角色动态显示菜单
-- 接口级权限控制：后端中间件验证角色权限
-- 无权限访问时返回 403，前端跳转无权限页面
-
-### API 接口
-
-#### 认证接口
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | /api/v1/login | 用户登录 | 无 |
-| GET | /api/v1/user/info | 获取当前用户信息 | 已登录 |
-| POST | /api/v1/logout | 退出登录 | 已登录 |
-
-#### 用户管理
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | /api/v1/user | 创建用户 | super_admin |
-| GET | /api/v1/user | 获取用户列表 | 已登录 |
-| GET | /api/v1/user/{id} | 获取用户详情 | 已登录 |
-| PUT | /api/v1/user/{id} | 更新用户 | 已登录 |
-| DELETE | /api/v1/user/{id} | 删除用户 | 已登录 |
-
-#### 角色管理
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | /api/v1/role | 创建角色 | 已登录 |
-| GET | /api/v1/role | 获取角色列表 | 已登录 |
-| GET | /api/v1/role/{id} | 获取角色详情 | 已登录 |
-| PUT | /api/v1/role/{id} | 更新角色 | 已登录 |
-| DELETE | /api/v1/role/{id} | 删除角色 | 已登录 |
-
-## 配置说明
-
-### JWT 配置
-
-在 `manifest/config/config.yaml` 中配置：
-
-```yaml
-jwt:
-  secret: "your-secret-key"  # JWT 签名密钥（生产环境务必修改）
-  expires: "24h"             # Token 过期时间
-  issuer: "tool-go"          # 签发者
-```
-
-### 环境切换
-
-通过 `GF_GENV` 环境变量切换：
-
-```bash
-# Windows PowerShell
-$env:GF_GENV="prod"
-
-# Linux/Mac
-export GF_GENV=prod
-```
+| 模块 | 方法 | 路径 | 说明 | 权限 |
+|------|------|------|------|------|
+| 认证 | POST | /api/v1/login | 用户登录 | 无 |
+| | GET | /api/v1/user/info | 获取当前用户信息 | 已登录 |
+| | POST | /api/v1/logout | 退出登录 | 已登录 |
+| 用户 | POST | /api/v1/user | 创建用户 | super_admin, admin |
+| | DELETE | /api/v1/user/{id} | 删除用户 | super_admin, admin |
+| | PUT | /api/v1/user/{id} | 更新用户 | super_admin, admin |
+| | GET | /api/v1/user/{id} | 获取用户详情 | 已登录 |
+| | GET | /api/v1/user | 用户列表(分页/搜索) | 已登录 |
+| | GET | /api/v1/user/{id}/roles | 获取用户角色 | 已登录 |
+| | PUT | /api/v1/user/{id}/roles | 分配角色 | super_admin, admin |
+| 角色 | POST | /api/v1/role | 创建角色 | super_admin, admin |
+| | DELETE | /api/v1/role/{id} | 删除角色 | super_admin, admin |
+| | PUT | /api/v1/role/{id} | 更新角色 | super_admin, admin |
+| | GET | /api/v1/role/{id} | 获取角色详情 | 已登录 |
+| | GET | /api/v1/role | 角色列表(分页/搜索) | 已登录 |
+| 仪表盘 | GET | /api/v1/dashboard/stats | 系统统计数据 | 已登录 |
+| 页面访问 | POST | /api/v1/pageview/track | 记录页面访问 | 无 |
+| | GET | /api/v1/pageview/stats | 访问统计 | 已登录 |
+| 工具 | POST | /api/v1/tools/mock-data | 生成模拟数据 | 无 |
 
 ## 默认账号
 
 | 用户名 | 密码 | 角色 |
 |--------|------|------|
-| admin | admin123 | 超级管理员 (super_admin) |
+| walter | walter | 超级管理员 (super_admin) |
+
+> 种子数据来自 `manifest/sql/init.sql`，密码哈希使用 MD5 + Salt。
+
+## 配置说明
+
+### JWT
+
+```yaml
+# manifest/config/config.yaml
+jwt:
+  secret: "dev-jwt-secret-key-123456"  # 生产环境务必修改
+  expires: "24h"
+  issuer: "tool-go"
+```
+
+### 环境切换
+
+```bash
+export GF_GENV=prod   # 加载 config.prod.yaml
+```
 
 ## Docker 部署
 
 ```bash
 docker build -f manifest/docker/Dockerfile -t tool-go .
-
 docker run -d -p 8000:8000 \
   -e DB_HOST=your-db-host \
   -e DB_PORT=5432 \
@@ -203,16 +173,6 @@ docker run -d -p 8000:8000 \
   -e DB_PASSWORD=your-password \
   -e DB_NAME=tool_go_prod \
   tool-go
-```
-
-## 代码生成
-
-```bash
-# 安装 gf CLI
-go install github.com/gogf/gf/cmd/gf/v2@latest
-
-# 生成 DAO 代码
-gf gen dao
 ```
 
 ## License
