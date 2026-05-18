@@ -45,6 +45,7 @@ web/dist/
 
 # Build
 web/dist-ssr/
+web/dist.zip
 
 # Local env
 web/.env.local
