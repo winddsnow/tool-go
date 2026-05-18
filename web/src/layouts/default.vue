@@ -3,7 +3,29 @@
     <div class="sidebar-overlay" v-if="sidebarOpen" @click="sidebarOpen = false" />
 
     <el-aside :width="sidebarOpen ? '220px' : '0'" class="sidebar">
-      <div class="logo">瓦特的工具站</div>
+      <div class="logo">
+        <svg viewBox="0 0 40 40" class="logo-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lgs" x1="0" y1="0" x2="40" y2="40">
+              <stop stop-color="#667eea"/>
+              <stop offset="1" stop-color="#764ba2"/>
+            </linearGradient>
+          </defs>
+          <rect width="40" height="40" rx="10" fill="url(#lgs)"/>
+          <g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="20" cy="20" r="9"/>
+            <circle cx="20" cy="20" r="5.5" stroke-width="1.4"/>
+            <line x1="20" y1="9" x2="20" y2="11"/>
+            <line x1="29.5" y1="14.5" x2="27.8" y2="15.5"/>
+            <line x1="29.5" y1="25.5" x2="27.8" y2="24.5"/>
+            <line x1="20" y1="31" x2="20" y2="29"/>
+            <line x1="10.5" y1="25.5" x2="12.2" y2="24.5"/>
+            <line x1="10.5" y1="14.5" x2="12.2" y2="15.5"/>
+            <circle cx="20" cy="20" r="1.5" fill="#fff" stroke="none"/>
+          </g>
+        </svg>
+        <span>瓦特的工具站</span>
+      </div>
       <el-menu
         :default-active="route.path"
         router
@@ -174,14 +196,22 @@ const handleLogout = async () => {
 
   .logo {
     height: 60px;
-    line-height: 60px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-size: 18px;
     font-weight: bold;
     color: #fff;
     border-bottom: 1px solid #1f2d3d;
     white-space: nowrap;
     overflow: hidden;
+  }
+
+  .logo-svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
   }
 }
 
