@@ -44,86 +44,34 @@
       <span class="oss-icon">★</span>
       <span class="oss-text">
         本项目已开源 —
-        <a href="https://gitee.com/winddsnow/tool-go" target="_blank" rel="noopener noreferrer">Gitee 仓库</a>
+        <a href="https://github.com/winddsnow/tool-go" target="_blank" rel="noopener noreferrer">GitHub</a>
+        ｜
+        <a href="https://gitee.com/winddsnow/tool-go" target="_blank" rel="noopener noreferrer">Gitee</a>
         ，欢迎
-        <a href="https://gitee.com/winddsnow/tool-go" target="_blank" rel="noopener noreferrer">Star ⭐</a>
+        <a href="https://github.com/winddsnow/tool-go" target="_blank" rel="noopener noreferrer">Star ⭐</a>
       </span>
+    </div>
+
+    <div class="category-tabs">
+      <el-tabs v-model="activeTab">
+        <el-tab-pane v-for="cat in categories" :key="cat.key" :label="cat.label" :name="cat.key" />
+      </el-tabs>
     </div>
 
     <!-- 工具卡片网格，每个卡片点击后弹出对应的工具弹窗 -->
     <div class="tools-grid">
-      <div class="tool-card" @click="openTool('timestamp')">
+      <div
+        v-for="tool in filteredTools"
+        :key="tool.id"
+        class="tool-card"
+        @click="openTool(tool.id)"
+      >
         <div class="tool-icon">
-          <el-icon :size="40"><Clock /></el-icon>
+          <el-icon :size="40"><component :is="tool.icon" /></el-icon>
         </div>
         <div class="tool-info">
-          <h3>时间戳转换</h3>
-          <p>Unix 时间戳与日期时间双向转换</p>
-        </div>
-        <div class="tool-arrow">
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </div>
-
-      <div class="tool-card" @click="openTool('json')">
-        <div class="tool-icon">
-          <el-icon :size="40"><Edit /></el-icon>
-        </div>
-        <div class="tool-info">
-          <h3>JSON 格式化</h3>
-          <p>JSON 数据美化与校验</p>
-        </div>
-        <div class="tool-arrow">
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </div>
-
-      <div class="tool-card" @click="openTool('hash')">
-        <div class="tool-icon">
-          <el-icon :size="40"><Lock /></el-icon>
-        </div>
-        <div class="tool-info">
-          <h3>哈希加密</h3>
-          <p>MD5, SHA1, SHA256 加密工具</p>
-        </div>
-        <div class="tool-arrow">
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </div>
-
-      <div class="tool-card" @click="openTool('base64')">
-        <div class="tool-icon">
-          <el-icon :size="40"><Document /></el-icon>
-        </div>
-        <div class="tool-info">
-          <h3>Base64 编解码</h3>
-          <p>Base64 编码与解码工具</p>
-        </div>
-        <div class="tool-arrow">
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </div>
-
-      <div class="tool-card" @click="openTool('password')">
-        <div class="tool-icon">
-          <el-icon :size="40"><Key /></el-icon>
-        </div>
-        <div class="tool-info">
-          <h3>密码生成器</h3>
-          <p>随机密码生成，支持自定义规则</p>
-        </div>
-        <div class="tool-arrow">
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </div>
-
-      <div class="tool-card" @click="openTool('mockdata')">
-        <div class="tool-icon">
-          <el-icon :size="40"><List /></el-icon>
-        </div>
-        <div class="tool-info">
-          <h3>随机数据生成器</h3>
-          <p>生成姓名/手机/身份证/护照等模拟数据</p>
+          <h3>{{ tool.title }}</h3>
+          <p>{{ tool.description }}</p>
         </div>
         <div class="tool-arrow">
           <el-icon><ArrowRight /></el-icon>
@@ -159,35 +107,63 @@
 // onMounted / onUnmounted 是生命周期钩子，分别在组件挂载和卸载时触发
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 // 从 Element Plus 图标库导入所需图标
-import { Clock, Edit, Lock, Document, Key, List, ArrowRight } from '@element-plus/icons-vue'
+import { Clock, Edit, Lock, Document, Key, List, EditPen, Search, Link, Ticket, ArrowRight } from '@element-plus/icons-vue'
 // Pinia 状态管理：获取用户登录状态（token、角色等）
 import { useUserStore } from '@/store/modules/user'
 // 仪表盘 API：获取统计数据和记录页面访问
 import { dashboardApi, DashboardStatsRes } from '@/api/dashboard'
-// 导入 6 个子工具组件，用于动态渲染
+// 导入子工具组件，用于动态渲染
 import TimestampConverter from './TimestampConverter.vue'
 import JsonFormatter from './JsonFormatter.vue'
 import HashEncryptor from './HashEncryptor.vue'
 import Base64Converter from './Base64Converter.vue'
 import PasswordGenerator from './PasswordGenerator.vue'
 import MockDataGenerator from './MockDataGenerator.vue'
+import TextDiff from './TextDiff.vue'
+import RegexTester from './RegexTester.vue'
+import CaseConverter from './CaseConverter.vue'
+import UuidGenerator from './UuidGenerator.vue'
+import QrCodeGenerator from './QrCodeGenerator.vue'
 
 // TypeScript 接口：定义工具对象的类型结构
 interface Tool {
   id: string
   title: string
+  category: string
+  icon: any
+  description: string
   component: any
 }
 
 // 工具注册表：用 Record 对象存储所有工具，key 是工具标识，value 包含标题和组件
 const tools: Record<string, Tool> = {
-  timestamp: { id: 'timestamp', title: '时间戳转换工具', component: TimestampConverter },
-  json: { id: 'json', title: 'JSON 格式化工具', component: JsonFormatter },
-  hash: { id: 'hash', title: '哈希加密工具', component: HashEncryptor },
-  base64: { id: 'base64', title: 'Base64 编解码工具', component: Base64Converter },
-  password: { id: 'password', title: '密码生成器', component: PasswordGenerator },
-  mockdata: { id: 'mockdata', title: '随机数据生成器', component: MockDataGenerator },
+  timestamp: { id: 'timestamp', title: '时间戳转换工具', category: 'convert', icon: Clock, description: 'Unix 时间戳与日期时间双向转换', component: TimestampConverter },
+  json: { id: 'json', title: 'JSON 格式化工具', category: 'text', icon: Edit, description: 'JSON 数据美化与校验', component: JsonFormatter },
+  hash: { id: 'hash', title: '哈希加密工具', category: 'encode', icon: Lock, description: 'MD5, SHA1, SHA256 加密工具', component: HashEncryptor },
+  base64: { id: 'base64', title: 'Base64 编解码工具', category: 'encode', icon: Document, description: 'Base64 编码与解码工具', component: Base64Converter },
+  password: { id: 'password', title: '密码生成器', category: 'generate', icon: Key, description: '随机密码生成，支持自定义规则', component: PasswordGenerator },
+  mockdata: { id: 'mockdata', title: '随机数据生成器', category: 'generate', icon: List, description: '生成姓名/手机/身份证/护照等模拟数据', component: MockDataGenerator },
+  textdiff: { id: 'textdiff', title: '文本对比工具', category: 'text', icon: EditPen, description: '逐行对比两段文本差异', component: TextDiff },
+  regex: { id: 'regex', title: '正则表达式测试工具', category: 'text', icon: Search, description: '正则表达式匹配与测试', component: RegexTester },
+  caseconv: { id: 'caseconv', title: '大小写/Naming Case 转换', category: 'text', icon: Link, description: 'camelCase/snake_case/kebab-case 互转', component: CaseConverter },
+  uuid: { id: 'uuid', title: 'UUID 生成器', category: 'generate', icon: Link, description: '批量生成 UUID v1/v4', component: UuidGenerator },
+  qrcode: { id: 'qrcode', title: '二维码生成器', category: 'generate', icon: Ticket, description: '将文本或 URL 生成二维码', component: QrCodeGenerator },
 }
+
+const categories = [
+  { key: 'all', label: '全部' },
+  { key: 'text', label: '文本处理' },
+  { key: 'encode', label: '编码加密' },
+  { key: 'generate', label: '生成类' },
+  { key: 'convert', label: '转换类' },
+]
+const activeTab = ref('all')
+
+
+
+const filteredTools = computed(() => {
+  return Object.values(tools).filter(t => activeTab.value === 'all' || t.category === activeTab.value)
+})
 
 // 弹窗显示/隐藏状态，初始为 false（隐藏）
 const toolVisible = ref(false)
@@ -302,6 +278,26 @@ onMounted(() => {
     p {
       font-size: 16px;
       color: #8c8c8c;
+    }
+  }
+
+  .category-tabs {
+    margin-bottom: 24px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px 16px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+
+    .el-tabs {
+      .el-tabs__header {
+        margin: 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      padding: 8px 8px 0;
+      overflow-x: auto;
     }
   }
 
