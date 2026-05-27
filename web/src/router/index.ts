@@ -41,30 +41,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/default.vue'),
     // 访问 / 时自动重定向到 /tools
     redirect: '/tools',
-    // children：嵌套路由，子路由的 path 会拼上父级的 path
-    children: [
-      {
-        path: 'tools',          // 完整路径是 /tools
-        name: 'Tools',
-        component: () => import('@/views/tools/index.vue'),
-        // icon：侧边栏菜单图标名，对应注册的 Element Plus 图标组件名
-        meta: { title: '工具箱', icon: 'Tool' },
-      },
-      {
-        path: 'user',           // 完整路径是 /user
-        name: 'User',
-        component: () => import('@/views/user/index.vue'),
-        // requiresAuth: true 表示需要登录才能访问
-        // roles 数组指定允许访问的角色，只有 super_admin 和 admin 可以查看用户管理页面
-        meta: { title: '用户管理', icon: 'User', requiresAuth: true, roles: ['super_admin', 'admin'] },
-      },
-      {
-        path: 'role',           // 完整路径是 /role
-        name: 'Role',
-        component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色管理', icon: 'Avatar', requiresAuth: true, roles: ['super_admin', 'admin'] },
-      },
-    ],
+    children: [],
   },
   // 通配路由：匹配所有未定义路径（如 /xxx），重定向到 403 页面
   // :pathMatch(.*)* 会捕获所有路径
@@ -119,6 +96,13 @@ router.beforeEach(async (to, _from, next) => {
             username: userInfo.username,
             nickname: userInfo.nickname,
             roles: userInfo.roles,
+            menus: userInfo.menus,
+          })
+          // 动态注册后端返回的菜单路由
+          const { menuToRoutes } = await import('@/utils/menu')
+          const dynamicRoutes = menuToRoutes(userStore.menus)
+          dynamicRoutes.forEach(route => {
+            router.addRoute('/', route)
           })
           // 重新执行当前导航，让后续的权限检查能读到刚设置的 roles
           next({ ...to, replace: true })

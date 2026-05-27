@@ -34,18 +34,26 @@
         active-text-color="#409eff"
         @select="onMenuSelect"
       >
-        <el-menu-item index="/tools">
-          <el-icon><Tool /></el-icon>
-          <span>工具箱</span>
-        </el-menu-item>
-        <el-menu-item v-if="userStore.hasAnyRole(['super_admin', 'admin'])" index="/user">
-          <el-icon><User /></el-icon>
-          <span>用户管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="userStore.hasAnyRole(['super_admin', 'admin'])" index="/role">
-          <el-icon><Avatar /></el-icon>
-          <span>角色管理</span>
-        </el-menu-item>
+        <template v-for="menu in visibleMenus" :key="menu.id">
+          <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.path">
+            <template #title>
+              <el-icon><component :is="menu.icon" /></el-icon>
+              <span>{{ menu.name }}</span>
+            </template>
+            <el-menu-item
+              v-for="child in menu.children"
+              :key="child.id"
+              :index="child.path"
+            >
+              <el-icon><component :is="child.icon" /></el-icon>
+              <span>{{ child.name }}</span>
+            </el-menu-item>
+          </el-sub-menu>
+          <el-menu-item v-else :index="menu.path">
+            <el-icon><component :is="menu.icon" /></el-icon>
+            <span>{{ menu.name }}</span>
+          </el-menu-item>
+        </template>
       </el-menu>
     </el-aside>
 
@@ -130,6 +138,11 @@ const sidebarOpen = ref(window.innerWidth >= 768)
 // computed 会根据依赖（userStore.token）自动重新计算
 // !! 是 JavaScript 的布尔转换，将值转为 true/false
 const isLoggedIn = computed(() => !!userStore.token)
+
+// visibleMenus：过滤出可见且启用的菜单项，用于侧边栏渲染
+const visibleMenus = computed(() => {
+  return (userStore.menus || []).filter((m: any) => m.visible === 1 && m.status === 1)
+})
 
 // ----------------------------------------------------------
 // onMenuSelect：点击侧边栏菜单项时触发
