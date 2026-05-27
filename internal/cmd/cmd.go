@@ -15,6 +15,7 @@ import (
 	// context — Go 标准库，用于管理协程的生命周期和传递请求范围的值。
 	// context.Context 是 Go 中处理超时、取消信号和传递请求级别数据的标准方式。
 	"context"
+	"time"
 
 	// g — GoFrame 框架核心包，提供 g.Server() 等服务入口
 	"github.com/gogf/gf/v2/frame/g"
@@ -104,7 +105,7 @@ var (
 				//     CORS 中间件（添加响应头）→
 				//   响应返回客户端
 				// ============================================================
-				group.Middleware(middleware.CORS, ghttp.MiddlewareHandlerResponse)
+				group.Middleware(middleware.CORS, middleware.SecurityHeaders, ghttp.MiddlewareHandlerResponse)
 
 				// ============================================================
 				// group.Group("/api/v1", ...) — 创建 /api/v1 子路由组
@@ -128,7 +129,8 @@ var (
 					//
 					//   最终 URL: POST /api/v1/login
 					// ============================================================
-					v1.POST("/login", controller.Auth, "Login")
+					v1.POST("/login", middleware.RateLimit(5, time.Minute), controller.Auth, "Login")
+					v1.POST("/refresh", controller.Auth, "Refresh")
 					v1.POST("/pageview/track", controller.PageView, "Track")
 					v1.POST("/tools/mock-data", controller.Tools, "MockData")
 
