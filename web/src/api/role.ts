@@ -55,4 +55,9 @@ export const roleApi = {
   // 为角色分配权限：PUT /api/v1/role/:id/permissions
   assignPermissions: (id: number, data: { permission_ids: number[] }) =>
     request.put(`/role/${id}/permissions`, data),
+  // 获取角色的菜单ID列表：GET /api/v1/role/:id/menus
+  getMenus: (id: number) => request.get<{ menu_ids: number[] }>(`/role/${id}/menus`),
+  // 为角色分配菜单：PUT /api/v1/role/:id/menus
+  assignMenus: (id: number, data: { menu_ids: number[] }) =>
+    request.put(`/role/${id}/menus`, data),
 }
