@@ -77,6 +77,13 @@ func (s *sUser) Create(ctx context.Context, req *v1.UserCreateReq) (*v1.UserCrea
 	}
 
 	id, _ := result.LastInsertId()
+
+	// 自动分配 user 角色 (role_id=3)
+	_, _ = dao.UserRole.Data(&do.UserRole{
+		UserId: uint64(id),
+		RoleId: 3,
+	}).Insert()
+
 	return &v1.UserCreateRes{Id: uint64(id)}, nil
 }
 
