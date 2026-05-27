@@ -88,11 +88,12 @@ type LoginReq struct {
 //                       []string 是"字符串切片"，Go 中的动态数组。
 // ============================================================
 type LoginRes struct {
-	Token    string   `json:"token" dc:"访问令牌"`
-	UserId   uint64   `json:"user_id" dc:"用户ID"`
-	Username string   `json:"username" dc:"用户名"`
-	Nickname string   `json:"nickname" dc:"昵称"`
-	Roles    []string `json:"roles" dc:"角色列表"`
+	Token    string     `json:"token" dc:"访问令牌"`
+	UserId   uint64     `json:"user_id" dc:"用户ID"`
+	Username string     `json:"username" dc:"用户名"`
+	Nickname string     `json:"nickname" dc:"昵称"`
+	Roles    []string   `json:"roles" dc:"角色列表"`
+	Menus    []MenuTree `json:"menus" dc:"菜单树"`
 }
 
 // ============================================================
@@ -115,10 +116,11 @@ type GetUserInfoReq struct {
 // 而不是用一个通用结构体。这样每个接口的响应都是精确的，
 // 不会返回多余字段。
 type GetUserInfoRes struct {
-	UserId   uint64   `json:"user_id" dc:"用户ID"`
-	Username string   `json:"username" dc:"用户名"`
-	Nickname string   `json:"nickname" dc:"昵称"`
-	Roles    []string `json:"roles" dc:"角色列表"`
+	UserId   uint64     `json:"user_id" dc:"用户ID"`
+	Username string     `json:"username" dc:"用户名"`
+	Nickname string     `json:"nickname" dc:"昵称"`
+	Roles    []string   `json:"roles" dc:"角色列表"`
+	Menus    []MenuTree `json:"menus" dc:"菜单树"`
 }
 
 // ============================================================

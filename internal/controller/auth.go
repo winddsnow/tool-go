@@ -17,6 +17,7 @@ import (
 	"tool-go/internal/library/password"
 	"tool-go/internal/middleware"
 	"tool-go/internal/model/entity"
+	"tool-go/internal/service"
 )
 
 // var Auth = cAuth{} 是 Go 中典型的 package-level 单例模式。
@@ -100,12 +101,18 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 	}
 
 	// &v1.LoginRes{...} 创建结构体指针并初始化字段（冒号分隔字段名和值），最后返回（nil 错误表示成功）
+	menuRes, _ := service.Menu().GetUserMenus(ctx, user.Id)
+	var menus []v1.MenuTree
+	if menuRes != nil {
+		menus = menuRes.Menus
+	}
 	return &v1.LoginRes{
 		Token:    token,
 		UserId:   user.Id,
 		Username: user.Username,
 		Nickname: user.Nickname,
 		Roles:    roles,
+		Menus:    menus,
 	}, nil
 }
 
@@ -130,11 +137,17 @@ func (c *cAuth) GetUserInfo(ctx context.Context, req *v1.GetUserInfoReq) (*v1.Ge
 
 	roles := getUserRoles(ctx, user.Id)
 
+	menuRes, _ := service.Menu().GetUserMenus(ctx, user.Id)
+	var menus []v1.MenuTree
+	if menuRes != nil {
+		menus = menuRes.Menus
+	}
 	return &v1.GetUserInfoRes{
 		UserId:   user.Id,
 		Username: user.Username,
 		Nickname: user.Nickname,
 		Roles:    roles,
+		Menus:    menus,
 	}, nil
 }
 

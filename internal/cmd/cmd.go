@@ -173,11 +173,12 @@ var (
 						// 注意：Bind 注册的路由会继承当前路由组的中间件和前缀。
 						// 所以 controller.User 的 /user 路由实际是 /api/v1/user。
 						// ============================================================
-						auth.Bind(
-							controller.User,
-							controller.Role,
-							controller.Dashboard,
-						)
+					auth.Bind(
+						controller.User,
+						controller.Role,
+						controller.Dashboard,
+						controller.Menu,
+					)
 
 						// ============================================================
 						// auth.Group("/user", ...) — 用户管理子路由组
@@ -212,6 +213,14 @@ var (
 						auth.Group("/role", func(role *ghttp.RouterGroup) {
 							role.Middleware(middleware.Permission("super_admin", "admin"))
 						})
+
+						// Menu management (requires super_admin or admin)
+						auth.Group("/menu", func(menu *ghttp.RouterGroup) {
+							menu.Middleware(middleware.Permission("super_admin", "admin"))
+						})
+
+						// Current user menus (any authenticated user)
+						auth.GET("/menu/user", controller.Menu, "GetUserMenus")
 					})
 				})
 			})
