@@ -7,6 +7,10 @@ import axios, { AxiosResponse, type AxiosInstance } from 'axios'
 // ElMessage 是 Element Plus 的轻量级消息提示组件，用于在屏幕顶部显示错误提示
 import { ElMessage } from 'element-plus'
 
+// ----- Token 刷新状态 -----
+let isRefreshing = false
+let pendingRequests: Array<(token: string) => void> = []
+
 // 创建 Axios 实例（service），所有请求共享此配置
 const service: AxiosInstance = axios.create({
   // baseURL：所有请求 URL 的前缀
@@ -52,16 +56,51 @@ service.interceptors.response.use(
     return Promise.reject(new Error(message || '请求失败'))
   },
   // 第二个回调：处理失败的响应（HTTP 状态码 4xx/5xx）或网络错误
-  (error) => {
+  async (error) => {
     if (error.response) {
-      // 服务器返回了响应（有 HTTP 状态码）
       const { status, data } = error.response
-      if (status === 401 || status === 403) {
-        // 401=未认证（未登录或 token 过期），403=无权限
-        // 此处不弹出错误提示，也不做页面跳转
-        // 因为路由守卫（src/router/index.ts）会检测到无 token 或无角色，自动跳转到登录页或 403 页
+
+      // Auto-refresh on 401
+      if (status === 401 && !error.config._retry) {
+        if (isRefreshing) {
+          // Queue this request while refresh is in progress
+          return new Promise(resolve => {
+            pendingRequests.push((token: string) => {
+              error.config.headers.Authorization = `Bearer ${token}`
+              resolve(service(error.config))
+            })
+          })
+        }
+
+        error.config._retry = true
+        isRefreshing = true
+
+        try {
+          const { data: refreshData } = await service.post('/refresh')
+          const newToken = refreshData.access_token
+          localStorage.setItem('token', newToken)
+
+          // Retry all queued requests
+          pendingRequests.forEach(cb => cb(newToken))
+          pendingRequests = []
+
+          // Retry the original request
+          error.config.headers.Authorization = `Bearer ${newToken}`
+          return service(error.config)
+        } catch {
+          // Refresh failed — clear token and redirect to login
+          localStorage.removeItem('token')
+          window.location.href = '/login'
+          return Promise.reject(error)
+        } finally {
+          isRefreshing = false
+        }
+      }
+
+      if (status === 403) {
         return Promise.reject(error)
       }
+
       // 其他错误状态码（如 500 服务器错误），显示后端返回的错误消息
       ElMessage.error(data?.message || error.message || '网络错误')
     } else {
