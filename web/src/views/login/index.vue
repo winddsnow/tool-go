@@ -155,7 +155,7 @@ const handleLogin = async () => {
       })
 
       // 将 JWT token 存入 Pinia store（同时会存到 localStorage 持久化）
-      userStore.setToken(res.token)
+      userStore.setToken(res.access_token)
       // 保存用户信息（ID、用户名、昵称、角色列表）
       userStore.setUserInfo({
         userId: res.user_id,

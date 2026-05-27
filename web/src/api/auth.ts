@@ -7,13 +7,17 @@ export interface LoginReq {
 }
 
 export interface LoginRes {
-  token: string
+  access_token: string
   user_id: number
   username: string
   nickname: string
   roles: string[]
   menus: MenuTree[]
   permissions: string[]
+}
+
+export interface RefreshRes {
+  access_token: string
 }
 
 export interface UserInfoRes {
@@ -34,4 +38,5 @@ export const authApi = {
   getUserInfo: () => request.get<UserInfoRes>('/user/info'),
   // 退出登录：POST /api/v1/logout
   logout: () => request.post('/logout'),
+  refresh: () => request.post<RefreshRes>('/refresh'),
 }
