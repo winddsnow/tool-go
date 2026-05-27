@@ -3,8 +3,8 @@ import { MenuTree } from '@/api/menu'
 
 const componentMap: Record<string, () => Promise<any>> = {
   'views/tools/index.vue': () => import('@/views/tools/index.vue'),
-  'views/system/user/index.vue': () => import('@/views/system/user/index.vue'),
-  'views/system/role/index.vue': () => import('@/views/system/role/index.vue'),
+  'views/user/index.vue': () => import('@/views/user/index.vue'),
+  'views/role/index.vue': () => import('@/views/role/index.vue'),
   'views/system/menu/index.vue': () => import('@/views/system/menu/index.vue'),
 }
 

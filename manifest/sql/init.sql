@@ -147,8 +147,8 @@ COMMENT ON TABLE "role_menu" IS '角色菜单关联表';
 INSERT INTO "menu" ("id", "parent_id", "name", "path", "component", "icon", "sort", "visible", "status", "type") VALUES
 (1,  0, '工具箱',   '/tools',       'views/tools/index.vue',          'Tool',      1, 1, 1, 1),
 (2,  0, '系统管理', '/system',      '',                              'Setting',   2, 1, 1, 1),
-(3,  2, '用户管理', '/system/user', 'views/system/user/index.vue',   'User',      1, 1, 1, 2),
-(4,  2, '角色管理', '/system/role', 'views/system/role/index.vue',   'Avatar',    2, 1, 1, 2),
+(3, 2, '用户管理', '/user', 'views/user/index.vue',   'User',      1, 1, 1, 2),
+(4, 2, '角色管理', '/role', 'views/role/index.vue',   'Avatar',    2, 1, 1, 2),
 (5,  2, '菜单管理', '/system/menu', 'views/system/menu/index.vue',   'Menu',      3, 1, 1, 2);
 
 -- 角色菜单关联种子数据
