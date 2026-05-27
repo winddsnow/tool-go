@@ -70,7 +70,7 @@
         </div>
         <div class="header-right">
           <template v-if="isLoggedIn">
-            <el-button v-if="userStore.hasAnyRole(['super_admin', 'admin'])" type="primary" link @click="router.push('/user')">
+            <el-button v-if="userStore.hasPermission('user:create')" type="primary" link @click="router.push('/user')">
               <el-icon><Setting /></el-icon>
               <span class="nav-text">管理后台</span>
             </el-button>

@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>用户管理</span>
-          <el-button v-if="userStore.hasAnyRole(['super_admin', 'admin'])" type="primary" @click="handleAdd">新增用户</el-button>
+          <el-button v-if="userStore.hasPermission('user:create')" type="primary" @click="handleAdd">新增用户</el-button>
         </div>
       </template>
 
