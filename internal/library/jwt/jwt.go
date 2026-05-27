@@ -37,6 +37,12 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// RefreshClaims holds the refresh token payload.
+type RefreshClaims struct {
+	jwt.RegisteredClaims
+	UserId uint64 `json:"user_id"`
+}
+
 // JWT 持有签名密钥、过期时间和签发者信息，是生成与解析 Token 的核心结构体。
 // 字段使用小写字母开头，表示包内私有（unexported），外部只能通过 New() 函数创建。
 type JWT struct {
@@ -108,5 +114,42 @@ func (j *JWT) ParseToken(tokenString string) (*Claims, error) {
 		return claims, nil
 	}
 
+	return nil, ErrTokenInvalid
+}
+
+// GenerateRefreshToken creates a long-lived refresh token (7 days).
+func (j *JWT) GenerateRefreshToken(userId uint64) (string, error) {
+	claims := RefreshClaims{
+		UserId: userId,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.expires * 28)), // ~7 days
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    j.issuer,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(j.secret))
+}
+
+// ParseRefreshToken validates and parses a refresh token string.
+func (j *JWT) ParseRefreshToken(tokenString string) (*RefreshClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(j.secret), nil
+	})
+	if err != nil {
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			if ve.Errors&jwt.ValidationErrorExpired != 0 {
+				return nil, ErrTokenExpired
+			}
+			if ve.Errors&jwt.ValidationErrorNotValidYet != 0 {
+				return nil, ErrTokenNotValidYet
+			}
+		}
+		return nil, ErrTokenInvalid
+	}
+	if claims, ok := token.Claims.(*RefreshClaims); ok && token.Valid {
+		return claims, nil
+	}
 	return nil, ErrTokenInvalid
 }
