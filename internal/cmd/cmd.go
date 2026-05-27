@@ -192,7 +192,7 @@ var (
 						//   请求 → CORS → MiddlewareHandlerResponse → Auth → Permission → 实际处理函数
 						// ============================================================
 						auth.Group("/user", func(user *ghttp.RouterGroup) {
-							user.Middleware(middleware.Permission("super_admin", "admin"))
+							user.Middleware(middleware.PermissionCode("user:create", "user:delete", "user:assign-roles"))
 							// 手动注册需要额外权限控制的接口
 							user.POST("", controller.User, "Create")
 							user.PUT("/{id}/roles", controller.User, "AssignRoles")
@@ -211,12 +211,12 @@ var (
 						//   /api/v1/role 等           — 需要认证 + super_admin/admin 角色
 						// ============================================================
 						auth.Group("/role", func(role *ghttp.RouterGroup) {
-							role.Middleware(middleware.Permission("super_admin", "admin"))
+							role.Middleware(middleware.PermissionCode("role:create", "role:delete"))
 						})
 
 						// Menu management (requires super_admin or admin)
 						auth.Group("/menu", func(menu *ghttp.RouterGroup) {
-							menu.Middleware(middleware.Permission("super_admin", "admin"))
+							menu.Middleware(middleware.PermissionCode("menu:create", "menu:delete"))
 						})
 
 						// Current user menus (any authenticated user)
