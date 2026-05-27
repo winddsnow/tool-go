@@ -16,19 +16,24 @@ export const useUserStore = defineStore('user', () => {
   const nickname = ref<string>('')
   const roles = ref<string[]>([])
   const menus = ref<MenuTree[]>(JSON.parse(localStorage.getItem('menus') || '[]'))
+  const permissions = ref<string[]>(JSON.parse(localStorage.getItem('permissions') || '[]'))
 
   function setToken(val: string) {
     token.value = val
     localStorage.setItem('token', val)
   }
 
-  function setUserInfo(info: { userId: number; username: string; nickname: string; roles: string[]; menus?: MenuTree[] }) {
+  function setUserInfo(info: { userId: number; username: string; nickname: string; roles: string[]; menus?: MenuTree[]; permissions?: string[] }) {
     userId.value = info.userId
     username.value = info.username
     nickname.value = info.nickname
     roles.value = info.roles
     menus.value = info.menus || []
     localStorage.setItem('menus', JSON.stringify(info.menus || []))
+    if (info.permissions) {
+      permissions.value = info.permissions
+      localStorage.setItem('permissions', JSON.stringify(info.permissions))
+    }
   }
 
   function hasRole(role: string): boolean {
@@ -39,6 +44,14 @@ export const useUserStore = defineStore('user', () => {
     return roleList.some(role => roles.value.includes(role))
   }
 
+  function hasPermission(code: string): boolean {
+    return permissions.value.includes(code)
+  }
+
+  function hasAnyPermission(codes: string[]): boolean {
+    return codes.some(code => permissions.value.includes(code))
+  }
+
   function logout() {
     token.value = ''
     userId.value = 0
@@ -46,8 +59,10 @@ export const useUserStore = defineStore('user', () => {
     nickname.value = ''
     roles.value = []
     menus.value = []
+    permissions.value = []
     localStorage.removeItem('token')
     localStorage.removeItem('menus')
+    localStorage.removeItem('permissions')
   }
 
   return {
@@ -57,10 +72,13 @@ export const useUserStore = defineStore('user', () => {
     nickname,
     roles,
     menus,
+    permissions,
     setToken,
     setUserInfo,
     hasRole,
     hasAnyRole,
+    hasPermission,
+    hasAnyPermission,
     logout,
   }
 })
