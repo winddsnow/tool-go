@@ -13,6 +13,7 @@ export interface LoginRes {
   nickname: string
   roles: string[]
   menus: MenuTree[]
+  permissions: string[]
 }
 
 export interface UserInfoRes {
@@ -21,6 +22,7 @@ export interface UserInfoRes {
   nickname: string
   roles: string[]
   menus: MenuTree[]
+  permissions: string[]
 }
 
 // authApi 对象统一管理认证相关的 HTTP 请求

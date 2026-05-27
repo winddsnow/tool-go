@@ -105,6 +105,7 @@ router.beforeEach(async (to, _from, next) => {
             nickname: userInfo.nickname,
             roles: userInfo.roles,
             menus: userInfo.menus,
+            permissions: userInfo.permissions,
           })
           // 动态注册后端返回的菜单路由
           const { menuToRoutes } = await import('@/utils/menu')
