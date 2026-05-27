@@ -95,7 +95,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 
 	// jwt.New 创建 JWT 工具实例，GenerateToken 生成 token 字符串。
 	j := jwt.New(secret, expires, issuer)
-	token, err := j.GenerateToken(user.Id, user.Username, roles)
+	token, err := j.GenerateToken(user.Id, user.Username, roles, nil)
 	if err != nil {
 		return nil, gerror.New("生成token失败")
 	}

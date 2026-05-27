@@ -30,9 +30,10 @@ var (
 //   - Issuer（签发者）：标识 Token 的签发方
 // 这种结构体嵌套（embedding）是 Go 的惯用方式，子结构体的字段可直接通过外层访问。
 type Claims struct {
-	UserId   uint64   `json:"user_id"`
-	Username string   `json:"username"`
-	Roles    []string `json:"roles"`
+	UserId      uint64   `json:"user_id"`
+	Username    string   `json:"username"`
+	Roles       []string `json:"roles"`
+	Permissions []string `json:"permissions"`
 	jwt.RegisteredClaims
 }
 
@@ -60,12 +61,13 @@ func New(secret string, expires time.Duration, issuer string) *JWT {
 //   - 签名：用密钥对 Header + Payload 计算 HMAC-SHA256，附加为 Signature
 //   - 验证：接收方用相同的密钥重新计算签名，比对是否一致
 // 对称算法的优点是计算速度快，缺点是需要安全地共享密钥。
-func (j *JWT) GenerateToken(userId uint64, username string, roles []string) (string, error) {
+func (j *JWT) GenerateToken(userId uint64, username string, roles []string, permissions []string) (string, error) {
 	now := time.Now()
 	claims := Claims{
-		UserId:   userId,
-		Username: username,
-		Roles:    roles,
+		UserId:      userId,
+		Username:    username,
+		Roles:       roles,
+		Permissions: permissions,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(j.expires)),
 			IssuedAt:  jwt.NewNumericDate(now),
