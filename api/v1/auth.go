@@ -92,8 +92,9 @@ type LoginRes struct {
 	UserId   uint64     `json:"user_id" dc:"用户ID"`
 	Username string     `json:"username" dc:"用户名"`
 	Nickname string     `json:"nickname" dc:"昵称"`
-	Roles    []string   `json:"roles" dc:"角色列表"`
-	Menus    []MenuTree `json:"menus" dc:"菜单树"`
+	Roles       []string   `json:"roles" dc:"角色列表"`
+	Menus       []MenuTree `json:"menus" dc:"菜单树"`
+	Permissions []string   `json:"permissions" dc:"权限码列表"`
 }
 
 // ============================================================
@@ -116,11 +117,12 @@ type GetUserInfoReq struct {
 // 而不是用一个通用结构体。这样每个接口的响应都是精确的，
 // 不会返回多余字段。
 type GetUserInfoRes struct {
-	UserId   uint64     `json:"user_id" dc:"用户ID"`
-	Username string     `json:"username" dc:"用户名"`
-	Nickname string     `json:"nickname" dc:"昵称"`
-	Roles    []string   `json:"roles" dc:"角色列表"`
-	Menus    []MenuTree `json:"menus" dc:"菜单树"`
+	UserId      uint64     `json:"user_id" dc:"用户ID"`
+	Username    string     `json:"username" dc:"用户名"`
+	Nickname    string     `json:"nickname" dc:"昵称"`
+	Roles       []string   `json:"roles" dc:"角色列表"`
+	Menus       []MenuTree `json:"menus" dc:"菜单树"`
+	Permissions []string   `json:"permissions" dc:"权限码列表"`
 }
 
 // ============================================================

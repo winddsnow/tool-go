@@ -74,6 +74,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 
 	// 调用辅助函数获取该用户的角色列表
 	roles := getUserRoles(ctx, user.Id)
+	permissions := getUserPermissions(ctx, user.Id)
 
 	// g.Cfg().MustGet(ctx, "jwt") 从 config.yaml 读取 jwt 配置段。
 	// MustGet 在配置不存在时 panic（自动输出错误信息），在开发阶段便于排查。
@@ -95,7 +96,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 
 	// jwt.New 创建 JWT 工具实例，GenerateToken 生成 token 字符串。
 	j := jwt.New(secret, expires, issuer)
-	token, err := j.GenerateToken(user.Id, user.Username, roles, nil)
+	token, err := j.GenerateToken(user.Id, user.Username, roles, permissions)
 	if err != nil {
 		return nil, gerror.New("生成token失败")
 	}
@@ -107,12 +108,13 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 		menus = menuRes.Menus
 	}
 	return &v1.LoginRes{
-		Token:    token,
-		UserId:   user.Id,
-		Username: user.Username,
-		Nickname: user.Nickname,
-		Roles:    roles,
-		Menus:    menus,
+		Token:       token,
+		UserId:      user.Id,
+		Username:    user.Username,
+		Nickname:    user.Nickname,
+		Roles:       roles,
+		Menus:       menus,
+		Permissions: permissions,
 	}, nil
 }
 
@@ -136,6 +138,7 @@ func (c *cAuth) GetUserInfo(ctx context.Context, req *v1.GetUserInfoReq) (*v1.Ge
 	}
 
 	roles := getUserRoles(ctx, user.Id)
+	permissions := getUserPermissions(ctx, user.Id)
 
 	menuRes, _ := service.Menu().GetUserMenus(ctx, user.Id)
 	var menus []v1.MenuTree
@@ -143,11 +146,12 @@ func (c *cAuth) GetUserInfo(ctx context.Context, req *v1.GetUserInfoReq) (*v1.Ge
 		menus = menuRes.Menus
 	}
 	return &v1.GetUserInfoRes{
-		UserId:   user.Id,
-		Username: user.Username,
-		Nickname: user.Nickname,
-		Roles:    roles,
-		Menus:    menus,
+		UserId:      user.Id,
+		Username:    user.Username,
+		Nickname:    user.Nickname,
+		Roles:       roles,
+		Menus:       menus,
+		Permissions: permissions,
 	}, nil
 }
 
@@ -188,6 +192,24 @@ func getUserRoles(ctx context.Context, userId uint64) []string {
 	// make([]string, len(result)) 预分配切片（长度等于 result 数量），避免 append 动态扩容。
 	// v.String() 将 g.Var 类型的数据库值转为 Go string。
 	// 循环用 for i, v := range result { ... }，i 是索引（0-based），v 是元素值副本。
+	codes := make([]string, len(result))
+	for i, v := range result {
+		codes[i] = v.String()
+	}
+	return codes
+}
+
+func getUserPermissions(ctx context.Context, userId uint64) []string {
+	result, err := dao.Permission.Ctx(ctx).
+		LeftJoin("role_permission", "role_permission.permission_id=permission.id").
+		LeftJoin("user_role", "user_role.role_id=role_permission.role_id").
+		Where("user_role.user_id", userId).
+		Fields(dao.Permission.Columns.Code).
+		Array()
+	if err != nil {
+		g.Log().Error(ctx, "获取用户权限失败:", err)
+		return []string{}
+	}
 	codes := make([]string, len(result))
 	for i, v := range result {
 		codes[i] = v.String()
