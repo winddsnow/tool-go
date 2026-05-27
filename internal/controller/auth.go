@@ -10,6 +10,7 @@ import (
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 
 	v1 "tool-go/api/v1"
 	"tool-go/internal/dao"
@@ -101,6 +102,20 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 		return nil, gerror.New("生成token失败")
 	}
 
+	refreshToken, err := j.GenerateRefreshToken(user.Id)
+	if err != nil {
+		return nil, gerror.New("生成refresh token失败")
+	}
+
+	r := ghttp.RequestFromCtx(ctx)
+	r.Response.Cookie().Set(ghttp.CookieOption{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Path:     "/api/v1",
+		HttpOnly: true,
+		MaxAge:   604800,
+	})
+
 	// &v1.LoginRes{...} 创建结构体指针并初始化字段（冒号分隔字段名和值），最后返回（nil 错误表示成功）
 	menuRes, _ := service.Menu().GetUserMenus(ctx, user.Id)
 	var menus []v1.MenuTree
@@ -108,7 +123,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 		menus = menuRes.Menus
 	}
 	return &v1.LoginRes{
-		Token:       token,
+		AccessToken: token,
 		UserId:      user.Id,
 		Username:    user.Username,
 		Nickname:    user.Nickname,
@@ -155,11 +170,79 @@ func (c *cAuth) GetUserInfo(ctx context.Context, req *v1.GetUserInfoReq) (*v1.Ge
 	}, nil
 }
 
-// Logout 处理登出请求，返回空响应。
-// 因为 JWT 是无状态的（服务端不存储 token），所以只需前端删除 token 即可完成登出。
-// 返回空结构体 v1.LogoutRes{} 表示"操作成功"，符合 GoFrame 的约定（非 nil error 即成功）。
+// Logout 处理登出请求，清除 refresh token cookie。
 func (c *cAuth) Logout(ctx context.Context, req *v1.LogoutReq) (*v1.LogoutRes, error) {
+	r := ghttp.RequestFromCtx(ctx)
+	r.Response.Cookie().Set(ghttp.CookieOption{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/api/v1",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
 	return &v1.LogoutRes{}, nil
+}
+
+func (c *cAuth) Refresh(ctx context.Context, req *v1.RefreshReq) (*v1.RefreshRes, error) {
+	r := ghttp.RequestFromCtx(ctx)
+	refreshToken := r.Cookie("refresh_token")
+	if refreshToken == "" {
+		return nil, gerror.New("refresh token不存在")
+	}
+
+	jwtConfig := g.Cfg().MustGet(ctx, "jwt").MapStrVar()
+	secret := jwtConfig["secret"].String()
+	if secret == "" {
+		secret = "tool-go-jwt-secret-key-change-in-production"
+	}
+	expires := jwtConfig["expires"].Duration()
+	if expires == 0 {
+		expires = 15 * time.Minute
+	}
+	issuer := jwtConfig["issuer"].String()
+	if issuer == "" {
+		issuer = "tool-go"
+	}
+
+	j := jwt.New(secret, expires, issuer)
+	claims, err := j.ParseRefreshToken(refreshToken)
+	if err != nil {
+		return nil, gerror.New("refresh token无效或已过期")
+	}
+
+	var user *entity.User
+	err = dao.User.Ctx(ctx).
+		Where(dao.User.Columns.Id, claims.UserId).
+		WhereNull(dao.User.Columns.DeletedAt).
+		Scan(&user)
+	if err != nil || user == nil {
+		return nil, gerror.New("用户不存在")
+	}
+
+	roles := getUserRoles(ctx, user.Id)
+	permissions := getUserPermissions(ctx, user.Id)
+
+	newAccessToken, err := j.GenerateToken(user.Id, user.Username, roles, permissions)
+	if err != nil {
+		return nil, gerror.New("生成token失败")
+	}
+
+	newRefreshToken, err := j.GenerateRefreshToken(user.Id)
+	if err != nil {
+		return nil, gerror.New("生成refresh token失败")
+	}
+
+	r.Response.Cookie().Set(ghttp.CookieOption{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		Path:     "/api/v1",
+		HttpOnly: true,
+		MaxAge:   604800,
+	})
+
+	return &v1.RefreshRes{
+		AccessToken: newAccessToken,
+	}, nil
 }
 
 // getUserRoles 是包内私有的辅助函数（小写字母开头，外部不可见）。
