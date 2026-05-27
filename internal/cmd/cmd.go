@@ -180,6 +180,7 @@ var (
 						controller.Role,
 						controller.Dashboard,
 						controller.Menu,
+						controller.Permission,
 					)
 
 						// ============================================================
