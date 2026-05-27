@@ -8,7 +8,7 @@ A development and admin toolbox built with GoFrame v2 + Vue 3 + TypeScript + Ele
 
 - **GoFrame v2** — High-performance Go web framework
 - **PostgreSQL** — Relational database
-- **JWT (golang-jwt/jwt/v5)** — Authentication
+- **JWT (golang-jwt/jwt/v5)** — Authentication (Access Token + Refresh Token)
 - **RESTful API** — Standard API style
 - **Swagger** — API docs (dev mode)
 
@@ -19,11 +19,11 @@ A development and admin toolbox built with GoFrame v2 + Vue 3 + TypeScript + Ele
 - **Vite** — Fast build tool
 - **Element Plus** — UI component library
 - **Pinia** — State management
-- **Vue Router** — Route management
+- **Vue Router** — Dynamic routes (menu-driven)
 
 ## Features
 
-### Toolbox (11 tools, client-side)
+### Toolbox (12 tools, client-side)
 
 | Category | Tools |
 |----------|-------|
@@ -36,13 +36,23 @@ A development and admin toolbox built with GoFrame v2 + Vue 3 + TypeScript + Ele
 
 - **Dashboard** — System stats (users, roles, visits)
 - **User Management** — CRUD, role assignment, paginated search
-- **Role Management** — CRUD, permission control, paginated search
+- **Role Management** — CRUD, menu assignment, permission assignment, paginated search
+- **Menu Management** — Dynamic menu tree CRUD (directory/menu/button)
 
-### Auth & Permissions
+### Auth & Permissions (3-layer RBAC)
 
-- JWT login authentication
-- RBAC role-based access control (`super_admin` / `admin`)
-- Dual-layer guard: backend middleware + frontend route guard
+- **JWT Auth** — Access Token (15min) + Refresh Token (7 days, HttpOnly Cookie)
+- **Role Control** — `super_admin` / `admin` / `user`, customizable
+- **Menu Permissions** — Different roles see different sidebar menus
+- **Button Permissions** — Fine-grained permission codes (e.g. `user:create`, `role:delete`)
+- **New users auto-assigned `user` role**
+
+### Security
+
+- **Login Rate Limiting** — IP-based sliding window, 5 req/min
+- **CSP Headers** — Content-Security-Policy, X-Frame-Options, X-XSS-Protection, etc.
+- **Token Refresh** — 401 auto-refresh via Axios interceptor
+- **Password Hashing** — MD5 + Salt
 
 ## Quick Start
 
@@ -85,6 +95,28 @@ npm run build         # Production build (vue-tsc typecheck + vite build)
 | walter | walter | Super Admin (super_admin) |
 
 > Seed data from `manifest/sql/init.sql`. Password hashing uses MD5 + Salt.
+
+## RBAC Permission Model
+
+### Roles
+
+| Role | Description | Visible Menus | Button Permissions |
+|------|-------------|----------------|-------------------|
+| super_admin | Super Admin | All | All 7 permissions |
+| admin | Admin | Toolbox, User Mgmt, Role Mgmt | user:create/delete/assign-roles, role:create/delete |
+| user | Regular User | Toolbox | None |
+
+### Permission Codes
+
+| Code | Description |
+|------|-------------|
+| user:create | Create user |
+| user:delete | Delete user |
+| user:assign-roles | Assign roles |
+| role:create | Create role |
+| role:delete | Delete role |
+| menu:create | Create menu |
+| menu:delete | Delete menu |
 
 ## Configuration
 
