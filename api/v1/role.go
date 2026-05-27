@@ -105,3 +105,20 @@ type RoleItem struct {
 	Desc      string `json:"desc" dc:"描述"`
 	CreatedAt string `json:"created_at" dc:"创建时间"`
 }
+
+type RoleGetPermissionsReq struct {
+	g.Meta `path:"/role/{id}/permissions" method:"get" tags:"Role" summary:"获取角色权限"`
+	Id     uint64 `path:"id" v:"required#ID不能为空" dc:"角色ID"`
+}
+
+type RoleGetPermissionsRes struct {
+	PermissionIds []uint64 `json:"permission_ids" dc:"权限ID列表"`
+}
+
+type RoleAssignPermissionsReq struct {
+	g.Meta        `path:"/role/{id}/permissions" method:"put" tags:"Role" summary:"分配角色权限"`
+	Id            uint64   `path:"id" v:"required#ID不能为空" dc:"角色ID"`
+	PermissionIds []uint64 `json:"permission_ids" v:"required#权限列表不能为空" dc:"权限ID列表"`
+}
+
+type RoleAssignPermissionsRes struct{}

@@ -166,3 +166,42 @@ func (s *sRole) List(ctx context.Context, req *v1.RoleListReq) (*v1.RoleListRes,
 		Page:  req.Page,
 	}, nil
 }
+
+func (s *sRole) GetPermissions(ctx context.Context, req *v1.RoleGetPermissionsReq) (*v1.RoleGetPermissionsRes, error) {
+	result, err := dao.RolePermission.Ctx(ctx).
+		Where(dao.RolePermission.Columns.RoleId, req.Id).
+		Fields(dao.RolePermission.Columns.PermissionId).
+		Array()
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]uint64, len(result))
+	for i, v := range result {
+		ids[i] = v.Uint64()
+	}
+	return &v1.RoleGetPermissionsRes{PermissionIds: ids}, nil
+}
+
+func (s *sRole) AssignPermissions(ctx context.Context, req *v1.RoleAssignPermissionsReq) error {
+	return dao.RolePermission.Ctx(ctx).Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		_, err := dao.RolePermission.Ctx(ctx).Where(dao.RolePermission.Columns.RoleId, req.Id).Delete()
+		if err != nil {
+			return err
+		}
+		if len(req.PermissionIds) > 0 {
+			data := make([]do.RolePermission, 0, len(req.PermissionIds))
+			for _, pid := range req.PermissionIds {
+				data = append(data, do.RolePermission{
+					RoleId:       req.Id,
+					PermissionId: pid,
+					CreatedAt:    gtime.Now(),
+				})
+			}
+			_, err = dao.RolePermission.Ctx(ctx).Data(data).Insert()
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
