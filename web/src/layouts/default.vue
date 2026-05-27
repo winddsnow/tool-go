@@ -106,6 +106,7 @@
 //           通过 .value 读取/修改，模板中会自动展开（不用写 .value）
 // computed：根据其他响应式数据自动计算新值，依赖变化时自动更新
 import { ref, computed } from 'vue'
+import type { MenuTree } from '@/api/menu'
 
 // useRoute()  -> 获取当前路由信息（路径、参数、meta 等）
 // useRouter() -> 路由实例，用于编程式导航（push、replace 等）
@@ -139,9 +140,16 @@ const sidebarOpen = ref(window.innerWidth >= 768)
 // !! 是 JavaScript 的布尔转换，将值转为 true/false
 const isLoggedIn = computed(() => !!userStore.token)
 
-// visibleMenus：过滤出可见且启用的菜单项，用于侧边栏渲染
+// 默认游客菜单：未登录时只显示工具箱
+const defaultGuestMenus: MenuTree[] = [
+  { id: 1, parent_id: 0, name: '工具箱', path: '/tools', component: 'views/tools/index.vue', icon: 'Tool', sort: 1, visible: 1, type: 1 },
+]
+
+// visibleMenus：过滤出可见的菜单项，用于侧边栏渲染
+// 未登录游客使用默认菜单（仅工具箱）
 const visibleMenus = computed(() => {
-  return (userStore.menus || []).filter((m: any) => m.visible === 1 && m.status === 1)
+  const menus = isLoggedIn.value ? (userStore.menus || []) : defaultGuestMenus
+  return menus.filter((m: MenuTree) => m.visible === 1)
 })
 
 // ----------------------------------------------------------

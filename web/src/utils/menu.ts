@@ -8,11 +8,15 @@ const componentMap: Record<string, () => Promise<any>> = {
   'views/system/menu/index.vue': () => import('@/views/system/menu/index.vue'),
 }
 
+// 工具箱路由已在 router 中硬编码，动态注册时跳过
+const SKIP_ROUTES = new Set(['/tools', 'tools'])
+
 export function menuToRoutes(menus: MenuTree[]): RouteRecordRaw[] {
   const routes: RouteRecordRaw[] = []
   for (const menu of menus) {
     if (menu.type === 3) continue
     if (menu.visible === 0) continue
+    if (SKIP_ROUTES.has(menu.path)) continue
 
     const component = componentMap[menu.component]
     if (!component) continue

@@ -41,7 +41,15 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/default.vue'),
     // 访问 / 时自动重定向到 /tools
     redirect: '/tools',
-    children: [],
+    children: [
+      // 工具箱始终可用（游客和登录用户均可访问）
+      {
+        path: 'tools',
+        name: 'Tools',
+        component: () => import('@/views/tools/index.vue'),
+        meta: { title: '工具箱', icon: 'Tool' },
+      },
+    ],
   },
   // 通配路由：匹配所有未定义路径（如 /xxx），重定向到 403 页面
   // :pathMatch(.*)* 会捕获所有路径
