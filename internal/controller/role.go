@@ -61,3 +61,11 @@ func (c *cRole) GetPermissions(ctx context.Context, req *v1.RoleGetPermissionsRe
 func (c *cRole) AssignPermissions(ctx context.Context, req *v1.RoleAssignPermissionsReq) error {
 	return service.Role().AssignPermissions(ctx, req)
 }
+
+func (c *cRole) GetMenus(ctx context.Context, req *v1.RoleGetMenusReq) (*v1.RoleGetMenusRes, error) {
+	return service.Role().GetMenus(ctx, req)
+}
+
+func (c *cRole) AssignMenus(ctx context.Context, req *v1.RoleAssignMenusReq) error {
+	return service.Role().AssignMenus(ctx, req)
+}

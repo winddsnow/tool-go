@@ -205,3 +205,42 @@ func (s *sRole) AssignPermissions(ctx context.Context, req *v1.RoleAssignPermiss
 		return nil
 	})
 }
+
+func (s *sRole) GetMenus(ctx context.Context, req *v1.RoleGetMenusReq) (*v1.RoleGetMenusRes, error) {
+	result, err := dao.RoleMenu.Ctx(ctx).
+		Where(dao.RoleMenu.Columns.RoleId, req.Id).
+		Fields(dao.RoleMenu.Columns.MenuId).
+		Array()
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]uint64, len(result))
+	for i, v := range result {
+		ids[i] = v.Uint64()
+	}
+	return &v1.RoleGetMenusRes{MenuIds: ids}, nil
+}
+
+func (s *sRole) AssignMenus(ctx context.Context, req *v1.RoleAssignMenusReq) error {
+	return dao.RoleMenu.Ctx(ctx).Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		_, err := dao.RoleMenu.Ctx(ctx).Where(dao.RoleMenu.Columns.RoleId, req.Id).Delete()
+		if err != nil {
+			return err
+		}
+		if len(req.MenuIds) > 0 {
+			data := make([]do.RoleMenu, 0, len(req.MenuIds))
+			for _, mid := range req.MenuIds {
+				data = append(data, do.RoleMenu{
+					RoleId:    req.Id,
+					MenuId:    mid,
+					CreatedAt: gtime.Now(),
+				})
+			}
+			_, err = dao.RoleMenu.Ctx(ctx).Data(data).Insert()
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}

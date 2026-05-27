@@ -122,3 +122,20 @@ type RoleAssignPermissionsReq struct {
 }
 
 type RoleAssignPermissionsRes struct{}
+
+type RoleGetMenusReq struct {
+	g.Meta `path:"/role/{id}/menus" method:"get" tags:"Role" summary:"获取角色菜单"`
+	Id     uint64 `path:"id" v:"required#ID不能为空" dc:"角色ID"`
+}
+
+type RoleGetMenusRes struct {
+	MenuIds []uint64 `json:"menu_ids" dc:"菜单ID列表"`
+}
+
+type RoleAssignMenusReq struct {
+	g.Meta  `path:"/role/{id}/menus" method:"put" tags:"Role" summary:"分配角色菜单"`
+	Id      uint64   `path:"id" v:"required#ID不能为空" dc:"角色ID"`
+	MenuIds []uint64 `json:"menu_ids" v:"required#菜单列表不能为空" dc:"菜单ID列表"`
+}
+
+type RoleAssignMenusRes struct{}
