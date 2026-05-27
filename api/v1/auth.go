@@ -73,7 +73,7 @@ type LoginReq struct {
 // 如果返回的是 nil 或空结构体，框架会返回 204 No Content。
 //
 // 字段说明:
-//   Token    string   — JWT（JSON Web Token）访问令牌。
+//   AccessToken  string   — JWT（JSON Web Token）访问令牌。
 //                       JWT 是一种用于身份验证的令牌格式，
 //                       客户端在后续请求的 Authorization 头中携带此令牌。
 //                       []string 表示字符串切片（类似于其他语言的数组）。
@@ -88,13 +88,21 @@ type LoginReq struct {
 //                       []string 是"字符串切片"，Go 中的动态数组。
 // ============================================================
 type LoginRes struct {
-	Token    string     `json:"token" dc:"访问令牌"`
+	AccessToken  string     `json:"access_token" dc:"访问令牌"`
 	UserId   uint64     `json:"user_id" dc:"用户ID"`
 	Username string     `json:"username" dc:"用户名"`
 	Nickname string     `json:"nickname" dc:"昵称"`
 	Roles       []string   `json:"roles" dc:"角色列表"`
 	Menus       []MenuTree `json:"menus" dc:"菜单树"`
 	Permissions []string   `json:"permissions" dc:"权限码列表"`
+}
+
+type RefreshReq struct {
+	g.Meta `path:"/refresh" method:"post" tags:"Auth" summary:"刷新访问令牌"`
+}
+
+type RefreshRes struct {
+	AccessToken string `json:"access_token" dc:"新的访问令牌"`
 }
 
 // ============================================================
