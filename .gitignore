@@ -34,7 +34,7 @@ Thumbs.db
 .env.local
 manifest/config/config.*.yaml
 !manifest/config/config.local.yaml
-!manifest/config/config.prod.yaml
+!manifest/config/config.prod.yaml.example
 
 # Log
 manifest/log/
