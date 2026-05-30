@@ -10,6 +10,7 @@ import (
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 
 	v1 "tool-go/api/v1"
 	"tool-go/internal/dao"
@@ -17,6 +18,7 @@ import (
 	"tool-go/internal/library/password"
 	"tool-go/internal/middleware"
 	"tool-go/internal/model/entity"
+	"tool-go/internal/service"
 )
 
 // var Auth = cAuth{} 是 Go 中典型的 package-level 单例模式。
@@ -73,6 +75,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 
 	// 调用辅助函数获取该用户的角色列表
 	roles := getUserRoles(ctx, user.Id)
+	permissions := getUserPermissions(ctx, user.Id)
 
 	// g.Cfg().MustGet(ctx, "jwt") 从 config.yaml 读取 jwt 配置段。
 	// MustGet 在配置不存在时 panic（自动输出错误信息），在开发阶段便于排查。
@@ -94,18 +97,39 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 
 	// jwt.New 创建 JWT 工具实例，GenerateToken 生成 token 字符串。
 	j := jwt.New(secret, expires, issuer)
-	token, err := j.GenerateToken(user.Id, user.Username, roles)
+	token, err := j.GenerateToken(user.Id, user.Username, roles, permissions)
 	if err != nil {
 		return nil, gerror.New("生成token失败")
 	}
 
+	refreshToken, err := j.GenerateRefreshToken(user.Id)
+	if err != nil {
+		return nil, gerror.New("生成refresh token失败")
+	}
+
+	r := ghttp.RequestFromCtx(ctx)
+	r.Response.Cookie().Set(ghttp.CookieOption{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Path:     "/api/v1",
+		HttpOnly: true,
+		MaxAge:   604800,
+	})
+
 	// &v1.LoginRes{...} 创建结构体指针并初始化字段（冒号分隔字段名和值），最后返回（nil 错误表示成功）
+	menuRes, _ := service.Menu().GetUserMenus(ctx, user.Id)
+	var menus []v1.MenuTree
+	if menuRes != nil {
+		menus = menuRes.Menus
+	}
 	return &v1.LoginRes{
-		Token:    token,
-		UserId:   user.Id,
-		Username: user.Username,
-		Nickname: user.Nickname,
-		Roles:    roles,
+		AccessToken: token,
+		UserId:      user.Id,
+		Username:    user.Username,
+		Nickname:    user.Nickname,
+		Roles:       roles,
+		Menus:       menus,
+		Permissions: permissions,
 	}, nil
 }
 
@@ -129,20 +153,96 @@ func (c *cAuth) GetUserInfo(ctx context.Context, req *v1.GetUserInfoReq) (*v1.Ge
 	}
 
 	roles := getUserRoles(ctx, user.Id)
+	permissions := getUserPermissions(ctx, user.Id)
 
+	menuRes, _ := service.Menu().GetUserMenus(ctx, user.Id)
+	var menus []v1.MenuTree
+	if menuRes != nil {
+		menus = menuRes.Menus
+	}
 	return &v1.GetUserInfoRes{
-		UserId:   user.Id,
-		Username: user.Username,
-		Nickname: user.Nickname,
-		Roles:    roles,
+		UserId:      user.Id,
+		Username:    user.Username,
+		Nickname:    user.Nickname,
+		Roles:       roles,
+		Menus:       menus,
+		Permissions: permissions,
 	}, nil
 }
 
-// Logout 处理登出请求，返回空响应。
-// 因为 JWT 是无状态的（服务端不存储 token），所以只需前端删除 token 即可完成登出。
-// 返回空结构体 v1.LogoutRes{} 表示"操作成功"，符合 GoFrame 的约定（非 nil error 即成功）。
+// Logout 处理登出请求，清除 refresh token cookie。
 func (c *cAuth) Logout(ctx context.Context, req *v1.LogoutReq) (*v1.LogoutRes, error) {
+	r := ghttp.RequestFromCtx(ctx)
+	r.Response.Cookie().Set(ghttp.CookieOption{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/api/v1",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
 	return &v1.LogoutRes{}, nil
+}
+
+func (c *cAuth) Refresh(ctx context.Context, req *v1.RefreshReq) (*v1.RefreshRes, error) {
+	r := ghttp.RequestFromCtx(ctx)
+	refreshToken := r.Cookie("refresh_token")
+	if refreshToken == "" {
+		return nil, gerror.New("refresh token不存在")
+	}
+
+	jwtConfig := g.Cfg().MustGet(ctx, "jwt").MapStrVar()
+	secret := jwtConfig["secret"].String()
+	if secret == "" {
+		secret = "tool-go-jwt-secret-key-change-in-production"
+	}
+	expires := jwtConfig["expires"].Duration()
+	if expires == 0 {
+		expires = 15 * time.Minute
+	}
+	issuer := jwtConfig["issuer"].String()
+	if issuer == "" {
+		issuer = "tool-go"
+	}
+
+	j := jwt.New(secret, expires, issuer)
+	claims, err := j.ParseRefreshToken(refreshToken)
+	if err != nil {
+		return nil, gerror.New("refresh token无效或已过期")
+	}
+
+	var user *entity.User
+	err = dao.User.Ctx(ctx).
+		Where(dao.User.Columns.Id, claims.UserId).
+		WhereNull(dao.User.Columns.DeletedAt).
+		Scan(&user)
+	if err != nil || user == nil {
+		return nil, gerror.New("用户不存在")
+	}
+
+	roles := getUserRoles(ctx, user.Id)
+	permissions := getUserPermissions(ctx, user.Id)
+
+	newAccessToken, err := j.GenerateToken(user.Id, user.Username, roles, permissions)
+	if err != nil {
+		return nil, gerror.New("生成token失败")
+	}
+
+	newRefreshToken, err := j.GenerateRefreshToken(user.Id)
+	if err != nil {
+		return nil, gerror.New("生成refresh token失败")
+	}
+
+	r.Response.Cookie().Set(ghttp.CookieOption{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		Path:     "/api/v1",
+		HttpOnly: true,
+		MaxAge:   604800,
+	})
+
+	return &v1.RefreshRes{
+		AccessToken: newAccessToken,
+	}, nil
 }
 
 // getUserRoles 是包内私有的辅助函数（小写字母开头，外部不可见）。
@@ -175,6 +275,24 @@ func getUserRoles(ctx context.Context, userId uint64) []string {
 	// make([]string, len(result)) 预分配切片（长度等于 result 数量），避免 append 动态扩容。
 	// v.String() 将 g.Var 类型的数据库值转为 Go string。
 	// 循环用 for i, v := range result { ... }，i 是索引（0-based），v 是元素值副本。
+	codes := make([]string, len(result))
+	for i, v := range result {
+		codes[i] = v.String()
+	}
+	return codes
+}
+
+func getUserPermissions(ctx context.Context, userId uint64) []string {
+	result, err := dao.Permission.Ctx(ctx).
+		LeftJoin("role_permission", "role_permission.permission_id=permission.id").
+		LeftJoin("user_role", "user_role.role_id=role_permission.role_id").
+		Where("user_role.user_id", userId).
+		Fields(dao.Permission.Columns.Code).
+		Array()
+	if err != nil {
+		g.Log().Error(ctx, "获取用户权限失败:", err)
+		return []string{}
+	}
 	codes := make([]string, len(result))
 	for i, v := range result {
 		codes[i] = v.String()

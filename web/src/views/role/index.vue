@@ -43,6 +43,8 @@
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
+            <el-button type="warning" link @click="handleAssignPermissions(row)">分配权限</el-button>
+            <el-button type="success" link @click="handleAssignMenus(row)">分配菜单</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -83,6 +85,42 @@
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="permissionDialogVisible" title="分配权限" width="500px">
+      <div v-loading="permissionLoading">
+        <el-checkbox-group v-model="selectedPermissionIds">
+          <el-checkbox
+            v-for="perm in allPermissions"
+            :key="perm.id"
+            :label="perm.id"
+            :value="perm.id"
+          >
+            {{ perm.name }} ({{ perm.code }})
+          </el-checkbox>
+        </el-checkbox-group>
+      </div>
+      <template #footer>
+        <el-button @click="permissionDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitAssignPermissions">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="menuDialogVisible" title="分配菜单" width="500px">
+      <div v-loading="menuLoading">
+        <el-tree
+          :data="menuTreeData"
+          show-checkbox
+          node-key="id"
+          :default-checked-keys="selectedMenuIds"
+          :props="{ label: 'label', children: 'children' }"
+          ref="menuTreeRef"
+        />
+      </div>
+      <template #footer>
+        <el-button @click="menuDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleMenuSubmit">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -102,6 +140,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 // roleApi：角色相关 API（增删改查）
 // RoleItem：角色数据项的 TypeScript 类型
 import { roleApi, RoleItem } from '@/api/role'
+import { permissionApi, type PermissionItem } from '@/api/permission'
+import { menuApi, type MenuTree } from '@/api/menu'
 
 // loading：表格加载状态（绑定 v-loading，请求时显示遮罩动画）
 const loading = ref(false)
@@ -196,6 +236,36 @@ const handleDelete = async (row: RoleItem) => {
   fetchData()
 }
 
+// handleAssignPermissions：打开分配权限弹窗，加载全部权限和当前角色已有权限
+const handleAssignPermissions = async (row: RoleItem) => {
+  currentRoleId.value = row.id
+  permissionDialogVisible.value = true
+  permissionLoading.value = true
+  try {
+    const [permRes, rolePermRes] = await Promise.all([
+      permissionApi.list({ page: 1, page_size: 1000 }),
+      roleApi.getPermissions(row.id),
+    ])
+    allPermissions.value = permRes.list || []
+    selectedPermissionIds.value = rolePermRes.permission_ids || []
+  } finally {
+    permissionLoading.value = false
+  }
+}
+
+// submitAssignPermissions：提交权限分配
+const submitAssignPermissions = async () => {
+  try {
+    await roleApi.assignPermissions(currentRoleId.value, {
+      permission_ids: selectedPermissionIds.value,
+    })
+    ElMessage.success('分配权限成功')
+    permissionDialogVisible.value = false
+  } catch {
+    ElMessage.error('分配权限失败')
+  }
+}
+
 // ----------------------------------------------------------
 // handleSubmit：提交角色表单（新增/编辑）
 // 与用户管理不同的是：
@@ -226,6 +296,84 @@ const handleSubmit = async () => {
   }
   dialogVisible.value = false
   fetchData()
+}
+
+// ---------- 分配权限弹窗状态 ----------
+const permissionDialogVisible = ref(false)
+const currentRoleId = ref(0)
+const allPermissions = ref<PermissionItem[]>([])
+const selectedPermissionIds = ref<number[]>([])
+const permissionLoading = ref(false)
+
+const menuDialogVisible = ref(false)
+const currentRoleIdForMenu = ref(0)
+const menuTreeData = ref<TreeMenuItem[]>([])
+const selectedMenuIds = ref<number[]>([])
+const menuLoading = ref(false)
+const menuTreeRef = ref()
+
+interface TreeMenuItem {
+  id: number
+  label: string
+  children?: TreeMenuItem[]
+}
+
+function buildMenuTree(menus: MenuTree[]): TreeMenuItem[] {
+  const map = new Map<number, TreeMenuItem>()
+  const roots: TreeMenuItem[] = []
+
+  menus.forEach(m => {
+    map.set(m.id, { id: m.id, label: m.name, children: [] })
+  })
+
+  menus.forEach(m => {
+    const node = map.get(m.id)!
+    if (m.parent_id === 0) {
+      roots.push(node)
+    } else {
+      const parent = map.get(m.parent_id)
+      if (parent) {
+        parent.children!.push(node)
+      } else {
+        roots.push(node)
+      }
+    }
+  })
+
+  return roots
+}
+
+const handleAssignMenus = async (row: RoleItem) => {
+  currentRoleIdForMenu.value = row.id
+  menuDialogVisible.value = true
+  menuLoading.value = true
+  try {
+    const [menuRes, roleMenuRes] = await Promise.all([
+      menuApi.getUserMenus(),
+      roleApi.getMenus(row.id),
+    ])
+    menuTreeData.value = buildMenuTree(menuRes.menus || [])
+    selectedMenuIds.value = roleMenuRes.menu_ids || []
+  } finally {
+    menuLoading.value = false
+  }
+}
+
+const handleMenuSubmit = async () => {
+  if (!menuTreeRef.value) return
+  const checkedKeys = menuTreeRef.value.getCheckedKeys()
+  const halfCheckedKeys = menuTreeRef.value.getHalfCheckedKeys()
+  const allKeys = [...checkedKeys, ...halfCheckedKeys]
+
+  try {
+    await roleApi.assignMenus(currentRoleIdForMenu.value, {
+      menu_ids: allKeys,
+    })
+    ElMessage.success('分配菜单成功')
+    menuDialogVisible.value = false
+  } catch {
+    ElMessage.error('分配菜单失败')
+  }
 }
 
 // onMounted：页面加载时自动拉取角色列表

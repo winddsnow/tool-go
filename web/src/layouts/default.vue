@@ -3,7 +3,29 @@
     <div class="sidebar-overlay" v-if="sidebarOpen" @click="sidebarOpen = false" />
 
     <el-aside :width="sidebarOpen ? '220px' : '0'" class="sidebar">
-      <div class="logo">瓦特的工具站</div>
+      <div class="logo">
+        <svg viewBox="0 0 40 40" class="logo-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lgs" x1="0" y1="0" x2="40" y2="40">
+              <stop stop-color="#667eea"/>
+              <stop offset="1" stop-color="#764ba2"/>
+            </linearGradient>
+          </defs>
+          <rect width="40" height="40" rx="10" fill="url(#lgs)"/>
+          <g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="20" cy="20" r="9"/>
+            <circle cx="20" cy="20" r="5.5" stroke-width="1.4"/>
+            <line x1="20" y1="9" x2="20" y2="11"/>
+            <line x1="29.5" y1="14.5" x2="27.8" y2="15.5"/>
+            <line x1="29.5" y1="25.5" x2="27.8" y2="24.5"/>
+            <line x1="20" y1="31" x2="20" y2="29"/>
+            <line x1="10.5" y1="25.5" x2="12.2" y2="24.5"/>
+            <line x1="10.5" y1="14.5" x2="12.2" y2="15.5"/>
+            <circle cx="20" cy="20" r="1.5" fill="#fff" stroke="none"/>
+          </g>
+        </svg>
+        <span>瓦特的工具站</span>
+      </div>
       <el-menu
         :default-active="route.path"
         router
@@ -12,18 +34,26 @@
         active-text-color="#409eff"
         @select="onMenuSelect"
       >
-        <el-menu-item index="/tools">
-          <el-icon><Tool /></el-icon>
-          <span>工具箱</span>
-        </el-menu-item>
-        <el-menu-item v-if="userStore.hasAnyRole(['super_admin', 'admin'])" index="/user">
-          <el-icon><User /></el-icon>
-          <span>用户管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="userStore.hasAnyRole(['super_admin', 'admin'])" index="/role">
-          <el-icon><Avatar /></el-icon>
-          <span>角色管理</span>
-        </el-menu-item>
+        <template v-for="menu in visibleMenus" :key="menu.id">
+          <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.path">
+            <template #title>
+              <el-icon><component :is="menu.icon" /></el-icon>
+              <span>{{ menu.name }}</span>
+            </template>
+            <el-menu-item
+              v-for="child in menu.children"
+              :key="child.id"
+              :index="child.path"
+            >
+              <el-icon><component :is="child.icon" /></el-icon>
+              <span>{{ child.name }}</span>
+            </el-menu-item>
+          </el-sub-menu>
+          <el-menu-item v-else :index="menu.path">
+            <el-icon><component :is="menu.icon" /></el-icon>
+            <span>{{ menu.name }}</span>
+          </el-menu-item>
+        </template>
       </el-menu>
     </el-aside>
 
@@ -40,7 +70,7 @@
         </div>
         <div class="header-right">
           <template v-if="isLoggedIn">
-            <el-button v-if="userStore.hasAnyRole(['super_admin', 'admin'])" type="primary" link @click="router.push('/user')">
+            <el-button v-if="userStore.hasPermission('user:create')" type="primary" link @click="router.push('/user')">
               <el-icon><Setting /></el-icon>
               <span class="nav-text">管理后台</span>
             </el-button>
@@ -76,6 +106,7 @@
 //           通过 .value 读取/修改，模板中会自动展开（不用写 .value）
 // computed：根据其他响应式数据自动计算新值，依赖变化时自动更新
 import { ref, computed } from 'vue'
+import type { MenuTree } from '@/api/menu'
 
 // useRoute()  -> 获取当前路由信息（路径、参数、meta 等）
 // useRouter() -> 路由实例，用于编程式导航（push、replace 等）
@@ -108,6 +139,18 @@ const sidebarOpen = ref(window.innerWidth >= 768)
 // computed 会根据依赖（userStore.token）自动重新计算
 // !! 是 JavaScript 的布尔转换，将值转为 true/false
 const isLoggedIn = computed(() => !!userStore.token)
+
+// 默认游客菜单：未登录时只显示工具箱
+const defaultGuestMenus: MenuTree[] = [
+  { id: 1, parent_id: 0, name: '工具箱', path: '/tools', component: 'views/tools/index.vue', icon: 'Tool', sort: 1, visible: 1, type: 1 },
+]
+
+// visibleMenus：过滤出可见的菜单项，用于侧边栏渲染
+// 未登录游客使用默认菜单（仅工具箱）
+const visibleMenus = computed(() => {
+  const menus = isLoggedIn.value ? (userStore.menus || []) : defaultGuestMenus
+  return menus.filter((m: MenuTree) => m.visible === 1)
+})
 
 // ----------------------------------------------------------
 // onMenuSelect：点击侧边栏菜单项时触发
@@ -174,14 +217,22 @@ const handleLogout = async () => {
 
   .logo {
     height: 60px;
-    line-height: 60px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-size: 18px;
     font-weight: bold;
     color: #fff;
     border-bottom: 1px solid #1f2d3d;
     white-space: nowrap;
     overflow: hidden;
+  }
+
+  .logo-svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
   }
 }
 

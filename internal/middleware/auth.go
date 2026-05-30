@@ -25,7 +25,8 @@ import (
 const (
 	CtxUserId   = "userId"   // 当前登录用户的 ID
 	CtxUsername = "username" // 当前登录用户的用户名
-	CtxRoles    = "roles"    // 当前登录用户的角色列表
+	CtxRoles       = "roles"       // 当前登录用户的角色列表
+	CtxPermissions = "permissions" // 当前登录用户的权限列表
 )
 
 // Auth JWT 认证中间件。
@@ -103,6 +104,7 @@ func Auth(r *ghttp.Request) {
 	ctx = context.WithValue(ctx, CtxUserId, claims.UserId)
 	ctx = context.WithValue(ctx, CtxUsername, claims.Username)
 	ctx = context.WithValue(ctx, CtxRoles, claims.Roles)
+	ctx = context.WithValue(ctx, CtxPermissions, claims.Permissions)
 	r.SetCtx(ctx)
 
 	// r.Middleware.Next() 是 GoFrame 中间件链的核心机制：
@@ -158,6 +160,32 @@ func HasAnyRole(ctx context.Context, roles ...string) bool {
 	for _, role := range roles {
 		if HasRole(ctx, role) {
 			return true
+		}
+	}
+	return false
+}
+
+func GetPermissions(ctx context.Context) []string {
+	permissions, _ := ctx.Value(CtxPermissions).([]string)
+	return permissions
+}
+
+func HasPermission(ctx context.Context, permission string) bool {
+	for _, p := range GetPermissions(ctx) {
+		if p == permission {
+			return true
+		}
+	}
+	return false
+}
+
+func HasAnyPermission(ctx context.Context, permissions ...string) bool {
+	userPerms := GetPermissions(ctx)
+	for _, required := range permissions {
+		for _, p := range userPerms {
+			if p == required {
+				return true
+			}
 		}
 	}
 	return false

@@ -42,26 +42,31 @@
     <div class="converter-section">
       <h3>日期时间 → 时间戳</h3>
       <div class="input-group">
-        <!--
-          el-date-picker：Element Plus 日期时间选择器
-          type="datetime" 同时选择日期和时间
-          format 和 value-format 均设置为 "YYYY-MM-DD HH:mm:ss"
-          :teleported="false"：下拉面板不追加到 body，避免在弹窗内出现 z-index 层级问题
-          popper-class="mobile-dt-popper"：为手机端提供自定义样式修复
-          @change 在值变化时自动触发转换
-        -->
         <el-date-picker
           v-model="dateTimeInput"
           type="datetime"
-          placeholder="选择日期时间"
+          placeholder="点选日期时间"
           format="YYYY-MM-DD HH:mm:ss"
           value-format="YYYY-MM-DD HH:mm:ss"
           size="large"
           style="width: 100%"
           :teleported="false"
           popper-class="mobile-dt-popper"
-          @change="convertToTimestamp"
+          @change="onPickerChange"
         />
+      </div>
+      <div class="input-group" style="margin-top: 12px">
+        <el-input
+          v-model="manualDateTimeInput"
+          placeholder="或手动输入 (YYYY-MM-DD 或 YYYY-MM-DD HH:mm:ss)"
+          size="large"
+          clearable
+          @keyup.enter="convertManualInput"
+        >
+          <template #append>
+            <el-button @click="convertManualInput">转换</el-button>
+          </template>
+        </el-input>
       </div>
       <!-- 显示秒级时间戳 -->
       <div class="result-group" v-if="timestampResult">
@@ -122,8 +127,10 @@ const timezoneLabel = computed(() => {
 
 // 用户输入的时间戳字符串
 const timestampInput = ref('')
-// 用户选择的日期时间字符串
+// 用户通过日历控件选择的日期时间字符串
 const dateTimeInput = ref('')
+// 用户手动输入的日期时间字符串
+const manualDateTimeInput = ref('')
 // 时间戳转日期后的结果字符串
 const dateTimeResult = ref('')
 // 日期转时间戳的结果，包含秒和毫秒两个值（可为 null 表示无结果）
@@ -179,24 +186,53 @@ const convertToDateTime = () => {
   dateTimeResult.value = formatInTimezone(date, timezone.value)
 }
 
-// 将日期时间转换为时间戳（秒和毫秒两个值）
-const convertToTimestamp = () => {
-  if (!dateTimeInput.value) {
-    timestampResult.value = null
-    return
-  }
-
-  const date = new Date(dateTimeInput.value)
+function doConvert(dateStr: string) {
+  const date = new Date(dateStr)
   if (isNaN(date.getTime())) {
     ElMessage.warning('日期无效')
     return
   }
-
-  // getTime() 返回毫秒数，除以 1000 取整得到秒数
   timestampResult.value = {
     seconds: Math.floor(date.getTime() / 1000).toString(),
     milliseconds: date.getTime().toString(),
   }
+}
+
+function parseDateTime(input: string): string | null {
+  const trimmed = input.trim()
+
+  const dtMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/)
+  if (dtMatch) {
+    const [, y, m, d, h, mi, s] = dtMatch
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')} ${h.padStart(2, '0')}:${mi.padStart(2, '0')}:${(s || '00').padStart(2, '0')}`
+  }
+
+  const dateMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)
+  if (dateMatch) {
+    const [, y, m, d] = dateMatch
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')} 00:00:00`
+  }
+
+  return null
+}
+
+const onPickerChange = (val: string) => {
+  manualDateTimeInput.value = val || ''
+  if (val) {
+    doConvert(val)
+  } else {
+    timestampResult.value = null
+  }
+}
+
+const convertManualInput = () => {
+  const parsed = parseDateTime(manualDateTimeInput.value)
+  if (!parsed) {
+    ElMessage.warning('请输入有效日期格式: YYYY-MM-DD 或 YYYY-MM-DD HH:mm:ss')
+    return
+  }
+  dateTimeInput.value = parsed
+  doConvert(parsed)
 }
 
 // 复制到剪贴板的通用函数，使用浏览器原生 Clipboard API
@@ -218,9 +254,6 @@ watch(timezone, () => {
   if (dateTimeResult.value) convertToDateTime()
   updateCurrentTime()
 })
-
-// 监听日期时间输入变化，自动转时间戳（无需手动点击）
-watch(dateTimeInput, convertToTimestamp)
 
 // 组件挂载后：立即显示当前时间，然后每秒刷新一次
 onMounted(() => {

@@ -1,18 +1,18 @@
 # Tool Go — AGENTS.md
 
-Monorepo: GoFrame v2 backend (PostgreSQL) + Vue 3 + TypeScript + Element Plus frontend.
+Monorepo: GoFrame v2 backend (Go 1.23, PostgreSQL) + Vue 3 + TypeScript + Element Plus frontend.
 
 ## Project structure
 
 | Directory | Purpose |
 |-----------|---------|
-| `api/v1/` | Go request/response structs + route declarations (`g.Meta` tag) |
+| `api/v1/` | Go request/response structs + route declarations via `g.Meta` tags |
 | `internal/cmd/cmd.go` | Backend entrypoint — routes, middleware binding |
 | `internal/controller/` | HTTP handlers (thin, delegates to `service`) |
 | `internal/logic/` | Business logic (registers via `init()` → `service.RegisterXxx`) |
 | `internal/middleware/` | Auth (JWT), Permission (role check), CORS |
-| `internal/service/` | Interface + singleton registry (sync.RWMutex pattern) |
-| `internal/dao/` | Hand-written GoFrame DAO wrappers with Column constants |
+| `internal/service/` | Interface + singleton registry (`sync.RWMutex`) |
+| `internal/dao/` | Hand-written DAO wrappers with Column constants |
 | `internal/model/entity/` | DB entity structs |
 | `internal/model/do/` | Data Operation structs (used in inserts/updates) |
 | `internal/library/password/` | MD5 + Salt password hashing |
@@ -26,7 +26,7 @@ Monorepo: GoFrame v2 backend (PostgreSQL) + Vue 3 + TypeScript + Element Plus fr
 ## Commands
 
 ```bash
-# Backend (requires PostgreSQL — see manifest/sql/init.sql + manifest/config/config.yaml)
+# Backend (requires PostgreSQL running with DB from manifest/sql/init.sql)
 go mod tidy
 go run main.go              # dev server :8000, swagger at /swagger
 
@@ -34,11 +34,11 @@ go run main.go              # dev server :8000, swagger at /swagger
 cd web
 npm install
 npm run dev                 # :3000
-npm run build               # vue-tsc --noEmit + vite build
+npm run build               # vue-tsc && vite build (type errors block build)
 npm run lint                # eslint --fix
 npm run type-check          # vue-tsc --noEmit
 
-# Password hash utility (for seed-compatible hashes)
+# Password hash utility (seed-compatible hashes)
 go run hack/gen_password.go
 
 # Env switching: export GF_GENV=prod  loads config.prod.yaml
@@ -57,12 +57,15 @@ go run hack/gen_password.go
 - **GoFrame query order**: After `Count()`, the model is consumed. Chain `.Page().OrderDesc().Scan()` in a fresh chain.
 - **Password hashing**: Uses MD5 + Salt (`internal/library/password/`), not bcrypt. Use `go run hack/gen_password.go` to generate seed-compatible hashes.
 - **PostgreSQL driver**: Blank import `_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"` in `main.go`.
+- **Logic registration**: New logic packages require blank import `_ "tool-go/internal/logic"` in `main.go` for their `init()` to fire.
+- **Controller singleton pattern**: Each controller exports a package-level var (`var Auth = cAuth{}`). New controllers must follow this — zero-field struct, no constructor.
+- **Soft delete**: All user/role queries filter `WhereNull(dao.Xxx.Columns.DeletedAt)`. Missing this leaks soft-deleted records.
+- **Frontend `@/` alias**: Vite resolves `@/` to `web/src/` — all imports use `@/utils/request`, `@/api/auth`, etc.
 - **Frontend auto-imports**: `unplugin-auto-import` + `unplugin-vue-components` with `ElementPlusResolver` — components like `ElButton`, `ElMessage` are globally available without explicit imports.
 - **Response unwrapping**: Frontend Axios interceptor strips the `{code, message, data}` wrapper — API functions receive `data` directly.
-- **No tests**: Neither backend Go tests nor frontend tests exist in this repo.
+- **No tests**: Neither Go nor frontend tests exist in this repo. No CI workflows.
 - **Frontend `VITE_API_BASE_URL`**: Development loads from `web/.env.development` (`http://127.0.0.1:8000/api/v1`); production from `web/.env.production` (`/api/v1`). Vite proxy also forwards `/api` → `:8000` for same-origin dev.
-- **Swagger**: Enabled at `/swagger` and `/api.json` in dev mode.
+- **Swagger**: Enabled at `/swagger` and `/api.json` in dev mode (from `config.yaml`).
 - **JWT default**: `config.yaml` has `secret: "dev-jwt-secret-key-123456"`. Change in production.
 - **Docker**: `manifest/docker/Dockerfile` — override DB via env vars.
-- **npm run build** runs `vue-tsc` first — type errors block the build.
 - **Service registration**: Each `logic/*.go` has `init()` → `service.RegisterXxx(NewXxx())`. Service layer uses `sync.RWMutex` for singleton access.

@@ -53,3 +53,19 @@ func (c *cRole) GetOne(ctx context.Context, req *v1.RoleGetOneReq) (*v1.RoleGetO
 func (c *cRole) List(ctx context.Context, req *v1.RoleListReq) (*v1.RoleListRes, error) {
 	return service.Role().List(ctx, req)
 }
+
+func (c *cRole) GetPermissions(ctx context.Context, req *v1.RoleGetPermissionsReq) (*v1.RoleGetPermissionsRes, error) {
+	return service.Role().GetPermissions(ctx, req)
+}
+
+func (c *cRole) AssignPermissions(ctx context.Context, req *v1.RoleAssignPermissionsReq) error {
+	return service.Role().AssignPermissions(ctx, req)
+}
+
+func (c *cRole) GetMenus(ctx context.Context, req *v1.RoleGetMenusReq) (*v1.RoleGetMenusRes, error) {
+	return service.Role().GetMenus(ctx, req)
+}
+
+func (c *cRole) AssignMenus(ctx context.Context, req *v1.RoleAssignMenusReq) error {
+	return service.Role().AssignMenus(ctx, req)
+}

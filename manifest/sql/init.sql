@@ -97,3 +97,117 @@ COMMENT ON COLUMN "page_view"."user_id" IS '用户ID (未登录为空)';
 COMMENT ON COLUMN "page_view"."username" IS '用户名';
 COMMENT ON COLUMN "page_view"."ip_address" IS 'IP地址';
 COMMENT ON COLUMN "page_view"."user_agent" IS 'User-Agent';
+
+-- Menu table (动态菜单)
+CREATE TABLE IF NOT EXISTS "menu" (
+    "id" BIGSERIAL PRIMARY KEY,
+    "parent_id" BIGINT NOT NULL DEFAULT 0,
+    "name" VARCHAR(64) NOT NULL,
+    "path" VARCHAR(128) NOT NULL DEFAULT '',
+    "component" VARCHAR(256) NOT NULL DEFAULT '',
+    "icon" VARCHAR(64) NOT NULL DEFAULT '',
+    "sort" INT NOT NULL DEFAULT 0,
+    "visible" SMALLINT NOT NULL DEFAULT 1,
+    "status" SMALLINT NOT NULL DEFAULT 1,
+    "type" SMALLINT NOT NULL DEFAULT 1,
+    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP DEFAULT NULL
+);
+
+CREATE INDEX "idx_menu_parent_id" ON "menu" ("parent_id");
+CREATE INDEX "idx_menu_status" ON "menu" ("status");
+CREATE INDEX "idx_menu_deleted_at" ON "menu" ("deleted_at");
+
+COMMENT ON TABLE "menu" IS '菜单表';
+COMMENT ON COLUMN "menu"."id" IS '菜单ID';
+COMMENT ON COLUMN "menu"."parent_id" IS '父菜单ID (0=顶级)';
+COMMENT ON COLUMN "menu"."name" IS '菜单名称';
+COMMENT ON COLUMN "menu"."path" IS '路由路径';
+COMMENT ON COLUMN "menu"."component" IS '前端组件路径';
+COMMENT ON COLUMN "menu"."icon" IS '图标名';
+COMMENT ON COLUMN "menu"."sort" IS '排序';
+COMMENT ON COLUMN "menu"."visible" IS '是否显示: 1=显示, 0=隐藏';
+COMMENT ON COLUMN "menu"."status" IS '状态: 1=启用, 0=禁用';
+COMMENT ON COLUMN "menu"."type" IS '类型: 1=目录, 2=菜单, 3=按钮';
+
+-- Role-Menu relation table
+CREATE TABLE IF NOT EXISTS "role_menu" (
+    "id" BIGSERIAL PRIMARY KEY,
+    "role_id" BIGINT NOT NULL,
+    "menu_id" BIGINT NOT NULL,
+    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX "idx_role_menu_role_menu" ON "role_menu" ("role_id", "menu_id");
+
+COMMENT ON TABLE "role_menu" IS '角色菜单关联表';
+
+-- 菜单种子数据
+INSERT INTO "menu" ("id", "parent_id", "name", "path", "component", "icon", "sort", "visible", "status", "type") VALUES
+(1,  0, '工具箱',   '/tools',       'views/tools/index.vue',          'Tool',      1, 1, 1, 1),
+(2,  0, '系统管理', '/system',      '',                              'Setting',   2, 1, 1, 1),
+(3, 2, '用户管理', '/user', 'views/user/index.vue',   'User',      1, 1, 1, 2),
+(4, 2, '角色管理', '/role', 'views/role/index.vue',   'Avatar',    2, 1, 1, 2),
+(5,  2, '菜单管理', '/system/menu', 'views/system/menu/index.vue',   'Menu',      3, 1, 1, 2);
+
+-- 角色菜单关联种子数据
+-- super_admin 拥有所有菜单
+INSERT INTO "role_menu" ("role_id", "menu_id") VALUES
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5);
+
+-- admin 拥有工具箱 + 用户管理 + 角色管理（无菜单管理）
+INSERT INTO "role_menu" ("role_id", "menu_id") VALUES
+(2, 1), (2, 2), (2, 3), (2, 4);
+
+-- user 只拥有工具箱
+INSERT INTO "role_menu" ("role_id", "menu_id") VALUES
+(3, 1);
+
+-- Permission table (按钮级权限)
+CREATE TABLE IF NOT EXISTS "permission" (
+    "id" BIGSERIAL PRIMARY KEY,
+    "code" VARCHAR(64) NOT NULL,
+    "name" VARCHAR(64) NOT NULL,
+    "menu_id" BIGINT NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_permission_code" ON "permission" ("code");
+
+COMMENT ON TABLE "permission" IS '权限表';
+COMMENT ON COLUMN "permission"."id" IS '权限ID';
+COMMENT ON COLUMN "permission"."code" IS '权限码 (resource:action)';
+COMMENT ON COLUMN "permission"."name" IS '权限名称';
+COMMENT ON COLUMN "permission"."menu_id" IS '关联菜单ID (0=无关联)';
+
+-- Role-Permission relation table
+CREATE TABLE IF NOT EXISTS "role_permission" (
+    "id" BIGSERIAL PRIMARY KEY,
+    "role_id" BIGINT NOT NULL,
+    "permission_id" BIGINT NOT NULL,
+    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_role_permission_role_perm" ON "role_permission" ("role_id", "permission_id");
+
+COMMENT ON TABLE "role_permission" IS '角色权限关联表';
+
+-- 权限种子数据
+INSERT INTO "permission" ("code", "name", "menu_id") VALUES
+('user:create',       '创建用户',   3),
+('user:delete',       '删除用户',   3),
+('user:assign-roles', '分配角色',   3),
+('role:create',       '创建角色',   4),
+('role:delete',       '删除角色',   4),
+('menu:create',       '创建菜单',   5),
+('menu:delete',       '删除菜单',   5);
+
+-- 角色权限关联种子数据
+-- super_admin: all permissions
+INSERT INTO "role_permission" ("role_id", "permission_id") VALUES
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7);
+
+-- admin: user CRUD + role create/delete (no menu management)
+INSERT INTO "role_permission" ("role_id", "permission_id") VALUES
+(2, 1), (2, 2), (2, 3), (2, 4), (2, 5);

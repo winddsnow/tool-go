@@ -50,4 +50,14 @@ export const roleApi = {
   // 查询角色列表：GET /api/v1/role?page=1&page_size=10&name=xxx&status=1
   list: (params: { page: number; page_size: number; name?: string; status?: number }) =>
     request.get('/role', { params }),
+  // 获取角色的权限ID列表：GET /api/v1/role/:id/permissions
+  getPermissions: (id: number) => request.get<{ permission_ids: number[] }>(`/role/${id}/permissions`),
+  // 为角色分配权限：PUT /api/v1/role/:id/permissions
+  assignPermissions: (id: number, data: { permission_ids: number[] }) =>
+    request.put(`/role/${id}/permissions`, data),
+  // 获取角色的菜单ID列表：GET /api/v1/role/:id/menus
+  getMenus: (id: number) => request.get<{ menu_ids: number[] }>(`/role/${id}/menus`),
+  // 为角色分配菜单：PUT /api/v1/role/:id/menus
+  assignMenus: (id: number, data: { menu_ids: number[] }) =>
+    request.put(`/role/${id}/menus`, data),
 }

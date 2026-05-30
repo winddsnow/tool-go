@@ -15,6 +15,7 @@ import (
 	// context — Go 标准库，用于管理协程的生命周期和传递请求范围的值。
 	// context.Context 是 Go 中处理超时、取消信号和传递请求级别数据的标准方式。
 	"context"
+	"time"
 
 	// g — GoFrame 框架核心包，提供 g.Server() 等服务入口
 	"github.com/gogf/gf/v2/frame/g"
@@ -104,7 +105,7 @@ var (
 				//     CORS 中间件（添加响应头）→
 				//   响应返回客户端
 				// ============================================================
-				group.Middleware(middleware.CORS, ghttp.MiddlewareHandlerResponse)
+				group.Middleware(middleware.CORS, middleware.SecurityHeaders, ghttp.MiddlewareHandlerResponse)
 
 				// ============================================================
 				// group.Group("/api/v1", ...) — 创建 /api/v1 子路由组
@@ -128,7 +129,8 @@ var (
 					//
 					//   最终 URL: POST /api/v1/login
 					// ============================================================
-					v1.POST("/login", controller.Auth, "Login")
+					v1.POST("/login", middleware.RateLimit(5, time.Minute), controller.Auth, "Login")
+					v1.POST("/refresh", controller.Auth, "Refresh")
 					v1.POST("/pageview/track", controller.PageView, "Track")
 					v1.POST("/tools/mock-data", controller.Tools, "MockData")
 
@@ -173,11 +175,13 @@ var (
 						// 注意：Bind 注册的路由会继承当前路由组的中间件和前缀。
 						// 所以 controller.User 的 /user 路由实际是 /api/v1/user。
 						// ============================================================
-						auth.Bind(
-							controller.User,
-							controller.Role,
-							controller.Dashboard,
-						)
+					auth.Bind(
+						controller.User,
+						controller.Role,
+						controller.Dashboard,
+						controller.Menu,
+						controller.Permission,
+					)
 
 						// ============================================================
 						// auth.Group("/user", ...) — 用户管理子路由组
@@ -191,7 +195,7 @@ var (
 						//   请求 → CORS → MiddlewareHandlerResponse → Auth → Permission → 实际处理函数
 						// ============================================================
 						auth.Group("/user", func(user *ghttp.RouterGroup) {
-							user.Middleware(middleware.Permission("super_admin", "admin"))
+							user.Middleware(middleware.PermissionCode("user:create", "user:delete", "user:assign-roles"))
 							// 手动注册需要额外权限控制的接口
 							user.POST("", controller.User, "Create")
 							user.PUT("/{id}/roles", controller.User, "AssignRoles")
@@ -210,8 +214,16 @@ var (
 						//   /api/v1/role 等           — 需要认证 + super_admin/admin 角色
 						// ============================================================
 						auth.Group("/role", func(role *ghttp.RouterGroup) {
-							role.Middleware(middleware.Permission("super_admin", "admin"))
+							role.Middleware(middleware.PermissionCode("role:create", "role:delete"))
 						})
+
+						// Menu management (requires super_admin or admin)
+						auth.Group("/menu", func(menu *ghttp.RouterGroup) {
+							menu.Middleware(middleware.PermissionCode("menu:create", "menu:delete"))
+						})
+
+						// Current user menus (any authenticated user)
+						auth.GET("/menu/user", controller.Menu, "GetUserMenus")
 					})
 				})
 			})

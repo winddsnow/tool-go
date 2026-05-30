@@ -19,6 +19,10 @@ type IRole interface {
 	Update(ctx context.Context, req *v1.RoleUpdateReq) error
 	GetOne(ctx context.Context, req *v1.RoleGetOneReq) (*v1.RoleGetOneRes, error)
 	List(ctx context.Context, req *v1.RoleListReq) (*v1.RoleListRes, error)
+	GetPermissions(ctx context.Context, req *v1.RoleGetPermissionsReq) (*v1.RoleGetPermissionsRes, error)
+	AssignPermissions(ctx context.Context, req *v1.RoleAssignPermissionsReq) error
+	GetMenus(ctx context.Context, req *v1.RoleGetMenusReq) (*v1.RoleGetMenusRes, error)
+	AssignMenus(ctx context.Context, req *v1.RoleAssignMenusReq) error
 }
 
 var (

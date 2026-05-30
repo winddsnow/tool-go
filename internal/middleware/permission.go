@@ -42,3 +42,17 @@ func Permission(requiredRoles ...string) func(r *ghttp.Request) {
 		r.Middleware.Next()
 	}
 }
+
+// PermissionCode returns a middleware that checks if user has any of the required permission codes.
+func PermissionCode(requiredPermissions ...string) func(r *ghttp.Request) {
+	return func(r *ghttp.Request) {
+		if !HasAnyPermission(r.GetCtx(), requiredPermissions...) {
+			r.Response.WriteJsonExit(g.Map{
+				"code":    403,
+				"message": "没有权限访问",
+			})
+			return
+		}
+		r.Middleware.Next()
+	}
+}

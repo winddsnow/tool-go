@@ -30,10 +30,17 @@ var (
 //   - Issuer（签发者）：标识 Token 的签发方
 // 这种结构体嵌套（embedding）是 Go 的惯用方式，子结构体的字段可直接通过外层访问。
 type Claims struct {
-	UserId   uint64   `json:"user_id"`
-	Username string   `json:"username"`
-	Roles    []string `json:"roles"`
+	UserId      uint64   `json:"user_id"`
+	Username    string   `json:"username"`
+	Roles       []string `json:"roles"`
+	Permissions []string `json:"permissions"`
 	jwt.RegisteredClaims
+}
+
+// RefreshClaims holds the refresh token payload.
+type RefreshClaims struct {
+	jwt.RegisteredClaims
+	UserId uint64 `json:"user_id"`
 }
 
 // JWT 持有签名密钥、过期时间和签发者信息，是生成与解析 Token 的核心结构体。
@@ -60,12 +67,13 @@ func New(secret string, expires time.Duration, issuer string) *JWT {
 //   - 签名：用密钥对 Header + Payload 计算 HMAC-SHA256，附加为 Signature
 //   - 验证：接收方用相同的密钥重新计算签名，比对是否一致
 // 对称算法的优点是计算速度快，缺点是需要安全地共享密钥。
-func (j *JWT) GenerateToken(userId uint64, username string, roles []string) (string, error) {
+func (j *JWT) GenerateToken(userId uint64, username string, roles []string, permissions []string) (string, error) {
 	now := time.Now()
 	claims := Claims{
-		UserId:   userId,
-		Username: username,
-		Roles:    roles,
+		UserId:      userId,
+		Username:    username,
+		Roles:       roles,
+		Permissions: permissions,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(j.expires)),
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -106,5 +114,42 @@ func (j *JWT) ParseToken(tokenString string) (*Claims, error) {
 		return claims, nil
 	}
 
+	return nil, ErrTokenInvalid
+}
+
+// GenerateRefreshToken creates a long-lived refresh token (7 days).
+func (j *JWT) GenerateRefreshToken(userId uint64) (string, error) {
+	claims := RefreshClaims{
+		UserId: userId,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.expires * 28)), // ~7 days
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    j.issuer,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(j.secret))
+}
+
+// ParseRefreshToken validates and parses a refresh token string.
+func (j *JWT) ParseRefreshToken(tokenString string) (*RefreshClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(j.secret), nil
+	})
+	if err != nil {
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			if ve.Errors&jwt.ValidationErrorExpired != 0 {
+				return nil, ErrTokenExpired
+			}
+			if ve.Errors&jwt.ValidationErrorNotValidYet != 0 {
+				return nil, ErrTokenNotValidYet
+			}
+		}
+		return nil, ErrTokenInvalid
+	}
+	if claims, ok := token.Claims.(*RefreshClaims); ok && token.Valid {
+		return claims, nil
+	}
 	return nil, ErrTokenInvalid
 }
