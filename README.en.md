@@ -149,6 +149,18 @@ docker run -d -p 8000:8000 \
   tool-go
 ```
 
+## Collaborators
+
+This project was developed collaboratively by **winddsnow** and AI large language models. The AI models actively participated in architecture design, code implementation, debugging, and feature iteration throughout the entire development process.
+
+| Collaborator | Model | Contribution |
+|--------------|-------|--------------|
+| **winddsnow** | — | Project initiation, requirements, code review, testing |
+| **MiMo v2.5 Pro** | Xiaomi MiMo | Code implementation, feature development, debugging, documentation |
+| **DeepSeek V4** | DeepSeek | Architecture design, solution review, early feature development |
+
+> This project is a practice of human-AI collaborative development. AI models have significantly improved efficiency in daily coding, debugging, and documentation, while human developers play an irreplaceable role in requirements control, architectural decisions, and quality assurance.
+
 ## License
 
 MIT
