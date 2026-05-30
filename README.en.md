@@ -1,6 +1,10 @@
 # Tool Go — Developer Toolbox
 
 <p align="center">
+  <a href="./README.en.md">English</a> | <a href="./README.md">中文</a>
+</p>
+
+<p align="center">
   <strong>The Swiss Army Knife for Developers — Toolbox + Admin Panel + RBAC Permission System</strong>
 </p>
 

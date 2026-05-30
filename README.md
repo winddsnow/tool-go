@@ -1,6 +1,10 @@
 # 瓦特的工具站
 
 <p align="center">
+  <a href="./README.en.md">English</a> | <a href="./README.md">中文</a>
+</p>
+
+<p align="center">
   <strong>开发者的瑞士军刀 — 工具箱 + 后台管理 + RBAC 权限系统</strong>
 </p>
 
