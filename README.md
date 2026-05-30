@@ -1,25 +1,56 @@
 # 瓦特的工具站
 
-基于 GoFrame v2 + Vue 3 + TypeScript + Element Plus 的开发和后台管理工具箱。
+<p align="center">
+  <strong>开发者的瑞士军刀 — 工具箱 + 后台管理 + RBAC 权限系统</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/winddsnow/tool-go/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/go-1.22+-00ADD8?logo=go" alt="Go">
+  <img src="https://img.shields.io/badge/vue-3-4FC08D?logo=vue.js" alt="Vue 3">
+  <img src="https://img.shields.io/badge/typescript-5-3178C6?logo=typescript" alt="TypeScript">
+  <img src="https://img.shields.io/badge/postgreSQL-14-336791?logo=postgresql" alt="PostgreSQL">
+</p>
+
+---
+
+**瓦特的工具站** 是一个面向开发者的全栈工具箱和后台管理系统。它将 12 个常用开发工具（JSON 格式化、正则测试、Base64、哈希加密等）与一个完整的 RBAC 权限管理系统整合在一起，既是日常开发的效率工具，也是一个可扩展的后台管理平台。
+
+项目采用 **GoFrame v2 + Vue 3 + TypeScript + Element Plus** 的现代化技术栈，后端基于 GoFrame 的 RESTful API 设计，前端使用 Vite 构建，支持动态菜单、按钮级权限控制、JWT 双 Token 认证等企业级特性。
+
+> 本项目由开发者 **winddsnow** 与 AI 大模型（**MiMo v2.5 Pro**、**DeepSeek V4**）协作开发完成。大模型全程参与了架构设计、代码编写、问题排查和功能迭代，是人机协作开发模式的一次实践。
+
+## 核心特性
+
+- **12 个开发工具** — JSON 格式化、文本对比、正则测试、Base64、哈希加密、密码生成、UUID、二维码等，纯前端实现
+- **动态菜单系统** — 菜单数据驱动，不同角色看到不同侧边栏，支持三级菜单（目录/菜单/按钮）
+- **细粒度 RBAC 权限** — 角色 → 菜单 + 角色 → 权限码，按钮级权限控制（如 `user:create`、`role:delete`）
+- **JWT 双 Token 认证** — Access Token (15分钟) + Refresh Token (7天, HttpOnly Cookie)，401 自动刷新
+- **安全防护** — 登录限流 (5次/分钟/IP)、CSP 安全头、XSS 防护、密码 MD5+Salt 哈希
+- **管理后台** — 用户管理、角色管理、菜单管理，可视化配置权限分配
+- **新建用户即用** — 自动分配基础角色，登录即可使用工具箱
 
 ## 技术栈
 
 ### 后端
 
-- **GoFrame v2** — 高性能 Go Web 框架
-- **PostgreSQL** — 关系型数据库
-- **JWT (golang-jwt/jwt/v5)** — 身份认证（Access Token + Refresh Token）
-- **RESTful API** — 标准接口风格
-- **Swagger** — 接口文档（开发模式）
+| 技术 | 说明 |
+|------|------|
+| **GoFrame v2** | 高性能 Go Web 框架，RESTful API、ORM、中间件 |
+| **PostgreSQL** | 关系型数据库，7 张核心表 |
+| **JWT** | golang-jwt/jwt/v5，双 Token 认证 |
+| **Swagger** | 自动生成 API 文档（开发模式） |
 
 ### 前端
 
-- **Vue 3** — 渐进式 JavaScript 框架
-- **TypeScript** — 类型安全
-- **Vite** — 快速构建工具
-- **Element Plus** — UI 组件库
-- **Pinia** — 状态管理
-- **Vue Router** — 动态路由（菜单驱动）
+| 技术 | 说明 |
+|------|------|
+| **Vue 3** | Composition API、响应式、组件化 |
+| **TypeScript** | 类型安全，编译期错误检查 |
+| **Vite** | 极速构建，开发热更新 |
+| **Element Plus** | 企业级 UI 组件库 |
+| **Pinia** | 轻量状态管理，持久化存储 |
+| **Vue Router** | 动态路由，菜单驱动注册 |
 
 ## 功能概览
 

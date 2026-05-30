@@ -1,25 +1,56 @@
 # Tool Go — Developer Toolbox
 
-A development and admin toolbox built with GoFrame v2 + Vue 3 + TypeScript + Element Plus.
+<p align="center">
+  <strong>The Swiss Army Knife for Developers — Toolbox + Admin Panel + RBAC Permission System</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/winddsnow/tool-go/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/go-1.22+-00ADD8?logo=go" alt="Go">
+  <img src="https://img.shields.io/badge/vue-3-4FC08D?logo=vue.js" alt="Vue 3">
+  <img src="https://img.shields.io/badge/typescript-5-3178C6?logo=typescript" alt="TypeScript">
+  <img src="https://img.shields.io/badge/postgreSQL-14-336791?logo=postgresql" alt="PostgreSQL">
+</p>
+
+---
+
+**Tool Go** is a full-stack developer toolbox and admin management system. It integrates 12 commonly-used development tools (JSON Formatter, Regex Tester, Base64, Hash Encryption, etc.) with a complete RBAC permission management system, serving both as an everyday productivity tool and an extensible admin platform.
+
+Built with **GoFrame v2 + Vue 3 + TypeScript + Element Plus**, the backend follows GoFrame's RESTful API design, the frontend uses Vite for blazing-fast builds, and supports enterprise-grade features like dynamic menus, button-level permission control, and JWT dual-token authentication.
+
+> This project was developed collaboratively by developer **winddsnow** and AI large language models (**MiMo v2.5 Pro**, **DeepSeek V4**). The AI models actively participated in architecture design, code implementation, debugging, and feature iteration throughout the entire development process — a practical demonstration of human-AI collaborative development.
+
+## Highlights
+
+- **12 Developer Tools** — JSON Formatter, Text Diff, Regex Tester, Base64, Hash, Password Generator, UUID, QR Code, and more — all client-side
+- **Dynamic Menu System** — Data-driven menus, different roles see different sidebars, 3-level support (Directory / Menu / Button)
+- **Fine-grained RBAC** — Role → Menu + Role → Permission code, button-level control (e.g. `user:create`, `role:delete`)
+- **JWT Dual-Token Auth** — Access Token (15min) + Refresh Token (7 days, HttpOnly Cookie), auto-refresh on 401
+- **Security Hardening** — Login rate limiting (5 req/min/IP), CSP headers, XSS protection, password MD5+Salt hashing
+- **Admin Panel** — User, Role, and Menu management with visual permission assignment
+- **Instant Usability** — New users auto-assigned basic role, login and use the toolbox immediately
 
 ## Tech Stack
 
 ### Backend
 
-- **GoFrame v2** — High-performance Go web framework
-- **PostgreSQL** — Relational database
-- **JWT (golang-jwt/jwt/v5)** — Authentication (Access Token + Refresh Token)
-- **RESTful API** — Standard API style
-- **Swagger** — API docs (dev mode)
+| Technology | Description |
+|------------|-------------|
+| **GoFrame v2** | High-performance Go web framework, RESTful API, ORM, middleware |
+| **PostgreSQL** | Relational database, 7 core tables |
+| **JWT** | golang-jwt/jwt/v5, dual-token authentication |
+| **Swagger** | Auto-generated API docs (dev mode) |
 
 ### Frontend
 
-- **Vue 3** — Progressive JavaScript framework
-- **TypeScript** — Type safety
-- **Vite** — Fast build tool
-- **Element Plus** — UI component library
-- **Pinia** — State management
-- **Vue Router** — Dynamic routes (menu-driven)
+| Technology | Description |
+|------------|-------------|
+| **Vue 3** | Composition API, reactive, component-based |
+| **TypeScript** | Type safety, compile-time error checking |
+| **Vite** | Lightning-fast builds, HMR in dev |
+| **Element Plus** | Enterprise-grade UI component library |
+| **Pinia** | Lightweight state management with persistence |
+| **Vue Router** | Dynamic routes, menu-driven registration |
 
 ## Features
 
