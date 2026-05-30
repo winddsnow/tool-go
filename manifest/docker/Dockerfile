@@ -20,6 +20,8 @@ COPY --from=builder /app/tool-go .
 COPY --from=builder /app/manifest/config ./manifest/config
 COPY --from=builder /app/resource ./resource
 
+ENV GF_GENV=prod
+
 EXPOSE 8000
 
 CMD ["./tool-go"]

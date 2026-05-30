@@ -84,7 +84,7 @@ func (c *cAuth) Login(ctx context.Context, req *v1.LoginReq) (*v1.LoginRes, erro
 	jwtConfig := g.Cfg().MustGet(ctx, "jwt").MapStrVar()
 	secret := jwtConfig["secret"].String()
 	if secret == "" {
-		secret = "tool-go-jwt-secret-key-change-in-production"
+		g.Log().Fatal(ctx, "JWT secret not configured in config.yaml")
 	}
 	expires := jwtConfig["expires"].Duration()
 	if expires == 0 {
@@ -193,7 +193,7 @@ func (c *cAuth) Refresh(ctx context.Context, req *v1.RefreshReq) (*v1.RefreshRes
 	jwtConfig := g.Cfg().MustGet(ctx, "jwt").MapStrVar()
 	secret := jwtConfig["secret"].String()
 	if secret == "" {
-		secret = "tool-go-jwt-secret-key-change-in-production"
+		g.Log().Fatal(ctx, "JWT secret not configured in config.yaml")
 	}
 	expires := jwtConfig["expires"].Duration()
 	if expires == 0 {

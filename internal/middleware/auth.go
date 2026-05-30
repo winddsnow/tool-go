@@ -46,7 +46,7 @@ func Auth(r *ghttp.Request) {
 	jwtConfig := g.Cfg().MustGet(ctx, "jwt").MapStrStr()
 	secret := jwtConfig["secret"]
 	if secret == "" {
-		secret = "tool-go-jwt-secret-key-change-in-production"
+		g.Log().Fatal(r.GetCtx(), "JWT secret not configured in config.yaml")
 	}
 
 	// 创建 JWT 工具实例，传入密钥。jwt 包是本项目自定义的 JWT 封装。

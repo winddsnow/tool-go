@@ -53,7 +53,7 @@ func (c *cPageView) Track(ctx context.Context, req *v1.PageViewTrackReq) (*v1.Pa
 			jwtCfg := g.Cfg().MustGet(ctx, "jwt").MapStrVar()
 			secret := jwtCfg["secret"].String()
 			if secret == "" {
-				secret = "tool-go-jwt-secret-key-change-in-production"
+				g.Log().Fatal(ctx, "JWT secret not configured in config.yaml")
 			}
 			// jwt.New(secret, 0, "")：第二个参数 expires=0 表示"不需要过期验证"，
 			// 因为我们只需要解析已有的 JWT 获取用户信息，而不是生成新 token。

@@ -1,0 +1,24 @@
+# 生产环境配置模板
+# 使用方法：复制此文件为 config.prod.yaml 并修改
+# cp manifest/config/config.prod.yaml.example manifest/config/config.prod.yaml
+# 启动：GF_GENV=prod ./tool-go
+
+server:
+  address: ":8000"
+
+database:
+  default:
+    link: "pgsql:YOUR_USER:YOUR_PASSWORD@tcp(YOUR_HOST:5432)/YOUR_DB?sslmode=disable"
+    debug: false
+    maxIdle: 10
+    maxOpen: 100
+    maxLifetime: "30s"
+
+logger:
+  level: "warning"
+  stdout: false
+
+jwt:
+  secret: "CHANGE_ME_TO_A_RANDOM_STRING"
+  expires: "15m"
+  issuer: "tool-go"
